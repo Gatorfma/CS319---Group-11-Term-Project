@@ -1,4 +1,7 @@
 # CS319---Group-11-Term-Project
+## Overview
+The *TA Management System* is a web-based platform designed to efficiently manage Teaching Assistant (TA) duties and proctoring assignments. It ensures fair workload distribution, allows for task tracking, and automates the proctoring assignment process.
+
 ###  *Primary Functionalities*
 - *TA Duty Tracking*: TAs log their tasks (lab work, grading, recitations, office hours, etc.), and course instructors approve or reject submissions.
 - *Proctoring Assignment*: Assigns proctoring duties prioritizing TAs with the least workload.
