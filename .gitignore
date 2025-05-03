@@ -1,0 +1,43 @@
+# Python
+*.pyc
+*.pyo
+__pycache__/
+*.log
+
+# Virtual Environments
+env/
+venv/
+
+# Django
+*.sqlite3
+*.log
+db.sqlite3
+media/
+staticfiles/
+*.pot
+
+# VS Code
+.vscode/
+
+# macOS
+.DS_Store
+
+# Docker
+*.pid
+*.sock
+docker-compose.override.yml
+
+# Environment files
+.env
+
+# Migrations (optional: uncomment if you generate a lot)
+# */migrations/__pycache__/
+# */migrations/*.py
+
+# Pytest cache
+.pytest_cache/
+
+# Coverage reports
+htmlcov/
+.coverage
+coverage.xml
