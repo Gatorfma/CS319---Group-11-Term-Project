@@ -3,18 +3,25 @@
 .PHONY: help build up down restart clean run logs migrate makemigrations shell superuser test collectstatic
 
 # Build and run the containers
+# dependencylerde değişiklik yapılırsa veya yeni bir dependency eklenirse
 build:
 	docker-compose up --build
 
 # Start containers in background
+
 up:
 	docker-compose up -d
 
 # Stop containers
+# volumelar ve image'lar silinmez
+# sadece container'lar durdurulur
 down:
 	docker-compose down
 
+
 # Restart containers
+# container'lar durdurulur ve yeniden başlatılır
+# volumelar ve image'lar silinmez
 restart:
 	docker-compose down && docker-compose up -d
 
