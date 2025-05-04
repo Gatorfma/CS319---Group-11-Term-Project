@@ -1,0 +1,20 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<title>{% block title %}TA Management{% endblock %}</title>
+		<link rel="stylesheet" href="{% static 'css/main.css' %}" />
+	</head>
+	<body class="layout-container">
+		{% include "navbar.html" %}
+
+		<div class="layout-content-container px-40 py-5">{% block content %}{% endblock %}</div>
+
+		<footer class="footer">
+			<div class="layout-content-container px-40 py-5">
+				© 2025 Bilkent University TA Management System
+			</div>
+		</footer>
+	</body>
+</html>

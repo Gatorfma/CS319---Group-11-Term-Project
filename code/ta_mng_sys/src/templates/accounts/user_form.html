@@ -1,0 +1,60 @@
+{% extends "base.html" %} {% block title %}Create User{% endblock %} {% block content %}
+<div class="layout-content-container px-10 py-5">
+	<div class="card mx-auto" style="max-width: 800px">
+		<div class="card-header">Create New User</div>
+		<div class="card-body">
+			<form method="post">
+				{% csrf_token %} {% if form.non_field_errors %}
+				<div class="alert alert-error">{{ form.non_field_errors }}</div>
+				{% endif %}
+
+				<div class="form-grid">
+					{# username & email side by side #}
+					<div class="form-group">
+						{{ form.username.label_tag }} {{ form.username }} {{ form.username.errors }}
+					</div>
+					<div class="form-group">
+						{{ form.email.label_tag }} {{ form.email }} {{ form.email.errors }}
+					</div>
+
+					{# first & last name #}
+					<div class="form-group">
+						{{ form.first_name.label_tag }} {{ form.first_name }} {{ form.first_name.errors }}
+					</div>
+					<div class="form-group">
+						{{ form.last_name.label_tag }} {{ form.last_name }} {{ form.last_name.errors }}
+					</div>
+
+					{# role & employee ID #}
+					<div class="form-group">
+						{{ form.role.label_tag }} {{ form.role }} {{ form.role.errors }}
+					</div>
+					<div class="form-group">
+						{{ form.employee_id.label_tag }} {{ form.employee_id }} {{ form.employee_id.errors }}
+					</div>
+
+					{# department & phone number #}
+					<div class="form-group">
+						{{ form.department.label_tag }} {{ form.department }} {{ form.department.errors }}
+					</div>
+					<div class="form-group">
+						{{ form.phone_number.label_tag }} {{ form.phone_number }} {{ form.phone_number.errors }}
+					</div>
+
+					{# password fields span both columns #}
+					<div class="form-group col-span-2">
+						{{ form.password1.label_tag }} {{ form.password1 }} {{ form.password1.errors }}
+					</div>
+					<div class="form-group col-span-2">
+						{{ form.password2.label_tag }} {{ form.password2 }} {{ form.password2.errors }}
+					</div>
+				</div>
+
+				<div class="text-center">
+					<button type="submit" class="btn btn-accent">Create User</button>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>
+{% endblock %}
