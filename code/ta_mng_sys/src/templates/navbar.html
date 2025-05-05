@@ -1,0 +1,29 @@
+{% comment %} Role-aware navbar {% endcomment %}
+<nav class="navbar">
+	<div class="flex justify-between layout-content-container">
+		<a href="{% url 'home' %}" class="text-primary text-xl font-bold">TA Management</a>
+		<ul class="navbar-menu">
+			<li><a href="{% url 'home' %}" class="btn btn-alt text-muted">Home</a></li>
+
+			{% if user.is_authenticated %} {% if user.is_ta %}
+			<li><a href="{% url 'duty_log:create'   %}" class="btn btn-alt">Log Duty</a></li>
+			<li><a href="{% url 'duty_log:list'     %}" class="btn btn-alt">My Logs</a></li>
+			<li><a href="{% url 'leave:create'       %}" class="btn btn-alt">Request Leave</a></li>
+			{% endif %} {% if user.is_instructor %}
+			<li><a href="{% url 'duty_approval:list' %}" class="btn btn-alt">Approve Logs</a></li>
+			<li><a href="{% url 'duty:create'        %}" class="btn btn-alt">Create Duties</a></li>
+			{% endif %} {% if user.role in user.Roles.values %}
+			<li><a href="{% url 'admin:index' %}" class="btn btn-alt">Admin Dashboard</a></li>
+			<li>
+				<a href="{% url 'accounts:user_list' %}" class="btn btn-alt">Manage Users</a>
+			</li>
+
+			{% endif %}
+
+			<li><a href="{% url 'accounts:logout' %}" class="btn btn-alt">Logout</a></li>
+			{% else %}
+			<li><a href="{% url 'accounts:login' %}" class="btn btn-alt">Login</a></li>
+			{% endif %}
+		</ul>
+	</div>
+</nav>

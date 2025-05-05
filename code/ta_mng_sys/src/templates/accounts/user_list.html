@@ -1,0 +1,35 @@
+{% extends "base.html" %} {% block title %}Manage Users{% endblock %} {% block content %}
+<div class="layout-content-container px-10 py-5">
+	<div class="card mx-auto" style="max-width: 960px">
+		<div class="card-header flex justify-between items-center">
+			<h2 class="text-primary">Manage Users</h2>
+			<a href="{% url 'accounts:user_create' %}" class="btn btn-accent">+ New User</a>
+		</div>
+
+		<div class="card-body">
+			<table class="table">
+				<thead>
+					<tr>
+						<th>Username</th>
+						<th>Email</th>
+						<th>Role</th>
+					</tr>
+				</thead>
+				<tbody>
+					{% for u in users %}
+					<tr>
+						<td>{{ u.username }}</td>
+						<td>{{ u.email }}</td>
+						<td>{{ u.get_role_display }}</td>
+					</tr>
+					{% empty %}
+					<tr>
+						<td colspan="3">No users found.</td>
+					</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>
+{% endblock %}
