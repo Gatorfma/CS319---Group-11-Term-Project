@@ -1,0 +1,354 @@
+/* ───────────────────────────────────────────────────
+   main.css — Galileo Design Tokens & Utilities
+─────────────────────────────────────────────────── */
+
+/* 1. GOOGLE FONTS */
+@import url("https://fonts.googleapis.com/css2?display=swap&family=Manrope:wght@400;500;700;800&family=Noto+Sans:wght@400;500;700;900");
+
+/* 2. CSS RESET */
+*,
+*::before,
+*::after {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+
+/* 3. DESIGN TOKENS */
+:root {
+	--radius-full: 9999px; /* for pill-shaped buttons */
+	/* Fonts */
+	--font-sans: "Manrope", "Noto Sans", sans-serif;
+
+	/* Colors */
+	--color-page-bg: #f9f8fb;
+	--color-header-bd: #ebe8f2;
+	--color-text: #120e1a;
+	--color-muted: #645194;
+	--color-card-bg: #ffffff;
+	--color-btn-alt: #ebe8f2; /* neutral button bg */
+	--color-btn-accent: #c3b0f3; /* action button bg */
+
+	/* Sizing */
+	--radius-xl: 1rem; /* rounded-xl */
+	--spacing-40: 10rem; /* px-40 */
+	--spacing-10: 2.5rem; /* px-10 */
+	--spacing-5: 1.25rem; /* py-5 */
+	--spacing-3: 0.75rem; /* py-3 */
+
+	/* Avatar/icon utility sizes */
+	--size-4: 1rem; /* size-4 */
+	--size-7: 1.75rem; /* size-7 */
+	--size-10: 2.5rem; /* size-10 */
+	--size-12: 3rem; /* size-12 */
+}
+
+/* 4. BASE ELEMENTS */
+html {
+	font-family: var(--font-sans);
+	background-color: var(--color-page-bg);
+	color: var(--color-text);
+	min-height: 100%;
+}
+body {
+	min-height: 100vh;
+}
+
+/* 5. LAYOUT CONTAINERS */
+.layout-container {
+	display: flex;
+	flex-direction: column;
+	min-height: 100vh;
+}
+.layout-content-container {
+	flex: 1;
+	max-width: 960px;
+	margin: 0 auto;
+}
+
+/* 6. SPACING UTILITIES */
+.px-40 {
+	padding-left: var(--spacing-40);
+	padding-right: var(--spacing-40);
+}
+.px-10 {
+	padding-left: var(--spacing-10);
+	padding-right: var(--spacing-10);
+}
+.py-5 {
+	padding-top: var(--spacing-5);
+	padding-bottom: var(--spacing-5);
+}
+.py-3 {
+	padding-top: var(--spacing-3);
+	padding-bottom: var(--spacing-3);
+}
+
+/* 7. FLEX & GAP UTILITIES */
+.flex {
+	display: flex;
+}
+.flex-col {
+	flex-direction: column;
+}
+.flex-wrap {
+	flex-wrap: wrap;
+}
+.items-center {
+	align-items: center;
+}
+.justify-between {
+	justify-content: space-between;
+}
+.justify-center {
+	justify-content: center;
+}
+.gap-2 {
+	gap: 0.5rem;
+}
+.gap-3 {
+	gap: 0.75rem;
+}
+.gap-4 {
+	gap: 1rem;
+}
+.gap-8 {
+	gap: 2rem;
+}
+.gap-9 {
+	gap: 2.25rem;
+}
+
+/* 8. HEADER / NAVBAR */
+header,
+.navbar {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	border-bottom: 1px solid var(--color-header-bd);
+	background: white;
+	padding: var(--spacing-3) var(--spacing-10);
+}
+.navbar-menu {
+	display: flex;
+	list-style: none;
+}
+.navbar-menu li + li {
+	margin-left: 1rem;
+}
+.navbar-menu a {
+	font-size: 0.875rem;
+	font-weight: 500;
+	color: var(--color-text);
+	text-decoration: none;
+	line-height: 1.2;
+}
+
+/* 9. AVATAR & ICON SIZES */
+.size-4 {
+	width: var(--size-4);
+	height: var(--size-4);
+}
+.size-7 {
+	width: var(--size-7);
+	height: var(--size-7);
+}
+.size-10 {
+	width: var(--size-10);
+	height: var(--size-10);
+}
+.size-12 {
+	width: var(--size-12);
+	height: var(--size-12);
+}
+
+/* 10. BUTTONS */
+.btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	border: none;
+	border-radius: var(--radius-full); /* pill shape */
+	cursor: pointer;
+	font-size: 0.875rem;
+	font-weight: 700;
+	line-height: 1.2;
+	padding: 0 1rem;
+	height: 2.5rem;
+	transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.btn-alt {
+	background: var(--color-btn-alt);
+	color: var(--color-text);
+}
+.btn-accent {
+	background: var(--color-btn-accent);
+	color: var(--color-text);
+}
+
+/* Hover states */
+.btn-alt:hover,
+.btn-accent:hover {
+	filter: brightness(0.9); /* slight darken */
+	transform: translateY(-2px);
+}
+
+/* 11. CARDS */
+.card {
+	background: var(--color-card-bg);
+	border-radius: var(--radius-xl);
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+	overflow: hidden;
+	margin-bottom: 1.5rem;
+}
+.card-header,
+.card-footer {
+	background: var(--color-page-bg);
+	padding: 1rem;
+	font-weight: 700;
+}
+.card-body {
+	padding: 1rem;
+}
+
+/* ───────────────────────────────────────────────────
+   12b. FORM FIELDS (inputs, selects, textareas)
+─────────────────────────────────────────────────── */
+.form-input,
+.form-select,
+.form-textarea {
+	width: 100%;
+	padding: 1rem;
+	background: var(--color-btn-alt);
+	border: none;
+	border-radius: var(--radius-xl);
+	font-size: 1rem;
+	color: var(--color-text);
+	outline: none;
+}
+
+/* Remove default select arrow on most browsers */
+.form-select {
+	/* remove native arrow */
+	-webkit-appearance: none;
+	-moz-appearance: none;
+	appearance: none;
+	/* ensure our custom arrow has room */
+	padding-right: 2.5rem;
+	/* add the SVG arrow (percent-encoded so it parses reliably) */
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath fill='%23645194' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");
+	background-repeat: no-repeat;
+	background-position: right 1rem center;
+	background-size: 0.75rem;
+}
+
+/* Give textareas a taller default height */
+.form-textarea {
+	min-height: 8rem;
+	resize: vertical;
+}
+
+/* ───────────────────────────────────────────────────
+   12c. TWO-COLUMN FORM GRID
+─────────────────────────────────────────────────── */
+.form-grid {
+	display: grid;
+	grid-template-columns: repeat(2, 1fr);
+	gap: var(--space-md) var(--space-lg);
+}
+
+/* allow a field to span both columns */
+.col-span-2 {
+	grid-column: span 2;
+}
+
+/* 13. PROGRESS BAR */
+.progress-wrapper {
+	background: #d7d1e6;
+	border-radius: var(--radius-xl);
+	overflow: hidden;
+}
+.progress-bar {
+	background: var(--color-btn-accent);
+	height: 0.5rem;
+	width: 0%;
+}
+
+/* 14. LINKS & TEXT VARIANTS */
+.text-muted {
+	color: var(--color-muted);
+	font-weight: 400;
+}
+.text-primary {
+	color: var(--color-text);
+	font-weight: 700;
+}
+
+/* 15. FOOTER */
+.footer {
+	background: var(--color-text);
+	color: var(--color-card-bg);
+	padding: 1rem 0;
+	text-align: center;
+}
+
+/* 16. TEXT ALIGNMENT UTILITIES */
+.text-center {
+	text-align: center;
+}
+.text-left {
+	text-align: left;
+}
+.text-right {
+	text-align: right;
+}
+.text-justify {
+	text-align: justify;
+}
+.text-nowrap {
+	white-space: nowrap;
+}
+
+/* 17. TABLES */
+.table {
+	width: 100%;
+	border-collapse: collapse;
+	margin-bottom: var(--spacing-lg);
+}
+
+/* increase cell padding */
+.table th,
+.table td {
+	padding: var(--spacing-md) var(--spacing-lg); /* 1rem top/bottom, 1.5rem left/right */
+	text-align: left;
+}
+
+/* subtle row separator (only between rows) */
+.table tbody tr + tr {
+	border-top: 1px solid var(--color-header-bd);
+}
+
+/* ───────────────────────────────────────────────────
+   16. FORM GRID & LABELS
+─────────────────────────────────────────────────── */
+.form-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+	gap: var(--spacing-md);
+	margin-bottom: var(--spacing-lg);
+}
+
+.form-group {
+	display: flex;
+	flex-direction: column;
+}
+
+.form-label {
+	margin-bottom: var(--spacing-xs);
+	font-weight: 600;
+}
+
+.text-center {
+	text-align: center;
+}

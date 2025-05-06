@@ -1,0 +1,13 @@
+{% extends "base.html" %} {% block title %}Login{% endblock %} {% block content %}
+<div class="card mx-auto" style="max-width: 400px">
+	<div class="card-header">Login</div>
+	<div class="card-body">
+		<form method="post" class="flex flex-col gap-4">
+			{% csrf_token %}
+			<input type="text" name="username" placeholder="Username" class="form-input" />
+			<input type="password" name="password" placeholder="Password" class="form-input" />
+			<button type="submit" class="btn btn-accent">Log In</button>
+		</form>
+	</div>
+</div>
+{% endblock %}
