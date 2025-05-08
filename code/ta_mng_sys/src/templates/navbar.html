@@ -20,7 +20,12 @@
 
 			{% endif %}
 
-			<li><a href="{% url 'accounts:logout' %}" class="btn btn-alt">Logout</a></li>
+			<li>
+				<form action="{% url 'accounts:logout' %}" method="post" style="display: inline">
+					{% csrf_token %}
+					<button type="submit" class="btn btn-alt">Logout</button>
+				</form>
+			</li>
 			{% else %}
 			<li><a href="{% url 'accounts:login' %}" class="btn btn-alt">Login</a></li>
 			{% endif %}
