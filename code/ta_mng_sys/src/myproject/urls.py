@@ -11,6 +11,7 @@ urlpatterns = [
         "accounts/logout/",
         LogoutView.as_view(next_page="home"),
         name="logout",
-        ),
-    path('requests/', include('ta_requests.urls')),  
+        ),  
+     path("duties/", include("duties.urls")),
+     path("courses/", include("courses.urls")),
 ]
