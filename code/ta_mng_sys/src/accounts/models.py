@@ -132,6 +132,30 @@ class TAProfile(models.Model):
         help_text="Duty swap requests involving this TA"
     )
     """
+    @property
+    def assigned_duties(self):
+        """Get all duties assigned to this TA across all duty types"""
+        all_duties = []
+        all_duties.extend(list(self.labduties.all()))
+        all_duties.extend(list(self.gradingduties.all()))
+        all_duties.extend(list(self.recitationduties.all()))
+        all_duties.extend(list(self.officehourduties.all()))
+        all_duties.extend(list(self.proctoringduties.all()))
+        return all_duties
+    
+    @property
+    def active_leave_requests(self):
+        """Get all active leave requests for this TA"""
+        from duties.models import LeaveRequest
+        return self.leave_requests.exclude(status=LeaveRequest.Status.REJECTED)
+    
+    @property
+    def pending_swap_requests(self):
+        """Get all pending swap requests involving this TA"""
+        from duties.models import SwapRequest
+        sent_requests = self.swap_requests_sent.filter(status=SwapRequest.Status.PENDING)
+        received_requests = self.swap_requests_received.filter(status=SwapRequest.Status.PENDING)
+        return list(sent_requests) + list(received_requests)
 
     class Meta:
         verbose_name = "TA Profile"
@@ -186,21 +210,25 @@ class InstructorProfile(models.Model):
     )
 
     # These will be implemented once the respective models are created
-    """
-    leave_requests = models.ManyToManyField(
-        'leaves.LeaveRequest',
-        related_name='approving_instructor',
-        blank=True,
-        help_text="Leave requests assigned to this instructor for approval"
-    )
-
-    duties_assigned = models.ManyToManyField(
-        'duties.Duty',
-        related_name='assigning_instructor',
-        blank=True,
-        help_text="Duties created/assigned by this instructor"
-    )
-    """
+    @property
+    def assigned_duties(self):
+        """Get all duties assigned by this instructor"""
+        from django.db.models import Q
+        from duties.models import LabDuty, GradingDuty, RecitationDuty, OfficeHourDuty, ProctoringDuty
+        
+        all_duties = []
+        all_duties.extend(list(LabDuty.objects.filter(created_by=self.user)))
+        all_duties.extend(list(GradingDuty.objects.filter(created_by=self.user)))
+        all_duties.extend(list(RecitationDuty.objects.filter(created_by=self.user)))
+        all_duties.extend(list(OfficeHourDuty.objects.filter(created_by=self.user)))
+        all_duties.extend(list(ProctoringDuty.objects.filter(created_by=self.user)))
+        return all_duties
+    
+    @property
+    def pending_leave_requests(self):
+        """Get leave requests pending this instructor's approval"""
+        from duties.models import LeaveRequest
+        return LeaveRequest.objects.filter(status=LeaveRequest.Status.PENDING)
 
     class Meta:
         verbose_name = "Instructor Profile"
@@ -244,14 +272,24 @@ class StaffProfile(models.Model):
     )
 
     # These will be implemented once the respective models are created
-    """
-    leave_requests_to_process = models.ManyToManyField(
-        'leaves.LeaveRequest',
-        related_name='processing_staff',
-        blank=True,
-        help_text="Leave requests pending this staff member's review"
-    )
-    """
+    @property
+    def pending_leave_requests(self):
+        """Get leave requests pending this staff member's review"""
+        from duties.models import LeaveRequest
+        from accounts.models import CustomUser
+        
+        # Different roles might have different access levels
+        if self.user.role == CustomUser.Roles.SECRETARY:
+            # Secretaries might only see requests for their department
+            return LeaveRequest.objects.filter(
+                status=LeaveRequest.Status.PENDING,
+                ta_profile__user__department=self.user.department
+            )
+        elif self.user.role in [CustomUser.Roles.DEPT_CHAIR, CustomUser.Roles.DEAN]:
+            # Chairs and deans might see all requests
+            return LeaveRequest.objects.filter(status=LeaveRequest.Status.PENDING)
+        
+        return LeaveRequest.objects.none()
 
     class Meta:
         verbose_name = "Staff Profile"
