@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Edit Exam Assignment{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2>Edit Assignment for {{ exam.course }} on {{ exam.date }}</h2>
+  <form method="post">
+    {% csrf_token %}
+
+    <div class="form-group">
+      <label><strong>Select exactly {{ exam.num_proctors_required }} TA(s):</strong></label>
+      <div class="row">
+        {% for ta_id, ta_label in ta_display_list %}
+          <div class="col-md-4">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="tas" value="{{ ta_id }}"
+                     id="ta_{{ ta_id }}" {% if form.fields.tas.initial and ta_id in form.fields.tas.initial %}checked{% endif %}>
+              <label class="form-check-label" for="ta_{{ ta_id }}">
+                {{ ta_label }}
+              </label>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary mt-3">Update Assignment</button>
+  </form>
+</div>
+{% endblock %}

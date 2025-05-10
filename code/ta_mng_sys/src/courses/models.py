@@ -77,10 +77,8 @@ class Exam(models.Model):
         blank=True,
         help_text='TAs assigned to proctor this exam'
     )
-    classroom = models.ForeignKey(
+    classroom = models.ManyToManyField(
         'courses.Classroom',
-        on_delete=models.SET_NULL,
-        null=True,
         blank=True,
         related_name='exams',
         help_text='Room where the exam will be held'
