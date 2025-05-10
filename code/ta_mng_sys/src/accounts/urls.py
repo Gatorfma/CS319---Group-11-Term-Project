@@ -1,6 +1,7 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
 from .views import UserListView, UserCreateView
+from . import views
 
 app_name = "accounts"
 
@@ -9,4 +10,5 @@ urlpatterns = [
     path("logout/", auth_views.LogoutView.as_view(next_page="accounts:login"),      name="logout"),
     path("users/",        UserListView.as_view(),   name="user_list"),
     path("users/create/", UserCreateView.as_view(), name="user_create"),
+    path("assign_ta_to_courses/", views.assign_ta_to_courses, name="assign_ta_to_courses"),
 ]

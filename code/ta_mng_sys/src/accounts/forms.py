@@ -1,6 +1,8 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from .models import CustomUser
+from accounts.models import TAProfile
+from courses.models import CourseOffering
 
 class CustomUserCreationForm(UserCreationForm):
     class Meta:
@@ -32,3 +34,10 @@ class CustomUserCreationForm(UserCreationForm):
         # Style the password fields as well
         self.fields["password1"].widget.attrs.update({"class": "form-input"})
         self.fields["password2"].widget.attrs.update({"class": "form-input"})
+
+class AssignTAForm(forms.Form):
+    ta = forms.ModelChoiceField(queryset=TAProfile.objects.filter(is_active=True))
+    course_offerings = forms.ModelChoiceField(
+        queryset=CourseOffering.objects.all(),
+        label="Course Offering"
+    )

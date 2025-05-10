@@ -1,0 +1,16 @@
+{% extends "base.html" %} {% block title %}Assign TA to Courses{% endblock %} {% block content %}
+<div class="layout-content-container px-10 py-5">
+	<div class="card mx-auto" style="max-width: 800px">
+		<div class="card-header">Assign TA to Courses</div>
+		<div class="card-body">
+			<form method="post">
+				{% csrf_token %} {% if form.non_field_errors %}
+				<div class="alert alert-error">{{ form.non_field_errors }}</div>
+				{% endif %}
+                {{ form.as_p }}
+                <button type="submit">Assign</button>
+			</form>
+		</div>
+	</div>
+</div>
+{% endblock %}
