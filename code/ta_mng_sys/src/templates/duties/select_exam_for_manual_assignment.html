@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Select Exam – Manual Proctor Assignment{% endblock %}
+
+{% block content %}
+  <style>
+    .select-exam-container {
+      max-width: 800px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+    .select-exam-container h2 {
+      color: #002147;
+      margin-bottom: 1.5rem;
+    }
+    .select-exam-list {
+      list-style: none;
+      padding: 0;
+    }
+    .select-exam-list li {
+      margin-bottom: .75rem;
+    }
+    .select-exam-list a {
+      display: block;
+      text-decoration: none;
+      background: #fff;
+      padding: .75rem 1rem;
+      border-radius: .5rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      color: #002147;
+      transition: background-color .2s;
+    }
+    .select-exam-list a:hover {
+      background-color: #f8f9fa;
+    }
+    .no-exams {
+      color: #555;
+      text-align: center;
+      padding: 1rem;
+      background: #fff;
+      border-radius: .5rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+  </style>
+
+  <div class="select-exam-container">
+    <h2>Select Exam for Manual Proctor Assignment</h2>
+    <ul class="select-exam-list">
+      {% for exam in exams %}
+        <li>
+          <a href="{% url 'duties:manual_assign_proctors' exam_id=exam.id %}">
+            {{ exam.course.department_code }}{{ exam.course.course_code }} –
+            {{ exam.date }} {{ exam.start_time|time:"H:i" }}
+          </a>
+        </li>
+      {% empty %}
+        <li class="no-exams">No exams available.</li>
+      {% endfor %}
+    </ul>
+  </div>
+{% endblock %}

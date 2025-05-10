@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Assign Classrooms - TA Management System{% endblock %}
+
+{% block content %}
+  <div class="layout-content-container px-10 py-5">
+    <div class="card">
+      <div class="card-header">
+        Assign Classrooms for {{ exam }}
+      </div>
+      <div class="card-body">
+        {% if messages %}
+          {% for message in messages %}
+            <div class="text-muted">{{ message }}</div>
+          {% endfor %}
+        {% endif %}
+
+        <form method="post" class="flex flex-col gap-4">
+          {% csrf_token %}
+          <table class="table">
+            <thead>
+              <tr>
+                <th>TA</th>
+                <th>Select Classroom</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for ta in selected_tas %}
+                <tr>
+                  <td>{{ ta.user.get_full_name|default:ta.user.username }}</td>
+                  <td>
+                    <select name="classroom_{{ ta.id }}" class="form-select" required>
+                      <option value="" disabled selected>Choose classroom...</option>
+                      {% for room in exam.classroom.all %}
+                        <option value="{{ room.id }}">{{ room }}</option>
+                      {% endfor %}
+                    </select>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          <div class="flex justify-center">
+            <button type="submit" class="btn btn-accent">
+              Assign Classrooms
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+    <div class="text-center">
+      <a href="{% url 'home' %}" class="btn btn-alt">&larr; Back to Home</a>
+    </div>
+  </div>
+{% endblock %}
