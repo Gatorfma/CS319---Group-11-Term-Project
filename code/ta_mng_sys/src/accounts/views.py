@@ -7,7 +7,7 @@ from django.contrib import messages
 from django.contrib.auth.views import LoginView
 from django.urls import reverse
 
-from .models import CustomUser
+from .models import CustomUser, TAProfile
 from .forms import CustomUserCreationForm, CustomUserEditForm
 
 def is_admin_user(user):
@@ -43,7 +43,7 @@ class UserCreateView(CreateView):
         messages.success(self.request, f"User {form.instance.username} was created successfully.")
         return super().form_valid(form)
 
-# Keep your existing edit view
+# Updated edit view to handle TA-specific fields
 @method_decorator([login_required, user_passes_test(is_admin_user)], name="dispatch")
 class UserUpdateView(UpdateView):
     model = CustomUser
@@ -52,8 +52,25 @@ class UserUpdateView(UpdateView):
     success_url = reverse_lazy("accounts:user_list")
     
     def form_valid(self, form):
+        response = super().form_valid(form)
+        
+        # Check if the role is TA and update TA profile
+        if form.instance.role == CustomUser.Roles.TA:
+            # Get or create TA profile
+            ta_profile, created = TAProfile.objects.get_or_create(user=form.instance)
+            
+            # Update TA-specific fields if they were in the form
+            if 'max_workload' in form.cleaned_data and form.cleaned_data['max_workload'] is not None:
+                ta_profile.max_workload = form.cleaned_data['max_workload']
+            
+            if 'max_absent_days' in form.cleaned_data and form.cleaned_data['max_absent_days'] is not None:
+                ta_profile.max_absent_days = form.cleaned_data['max_absent_days']
+            
+            # Save the TA profile
+            ta_profile.save()
+        
         messages.success(self.request, f"User {form.instance.username} was updated successfully.")
-        return super().form_valid(form)
+        return response
 
 # Keep your existing delete view
 @method_decorator([login_required, user_passes_test(is_admin_user)], name="dispatch")

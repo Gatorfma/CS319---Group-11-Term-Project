@@ -85,6 +85,30 @@
                     </div>
                 </div>
 
+                <!-- TA-Specific Fields Section - only shown when role is TA -->
+                <div id="ta-specific-fields" class="border-t border-gray-200 pt-4 mt-4" style="display: none;">
+                    <h3 class="text-primary mb-3">TA-Specific Details</h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="form-group">
+                            <label class="form-label">Max Workload (hours)</label>
+                            {{ form.max_workload }}
+                            <small class="text-muted">Use -1 for unlimited</small>
+                            {% if form.max_workload.errors %}
+                            <div class="text-danger">{{ form.max_workload.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Max Absent Days</label>
+                            {{ form.max_absent_days }}
+                            <small class="text-muted">Use -1 for unlimited</small>
+                            {% if form.max_absent_days.errors %}
+                            <div class="text-danger">{{ form.max_absent_days.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
                 <div class="grid grid-cols-2 gap-4">
                     <div class="form-group">
                         <label class="form-label flex items-center">
@@ -115,4 +139,27 @@
         </div>
     </div>
 </div>
+
+<!-- Script to toggle TA-specific fields -->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const roleSelect = document.getElementById('id_role');
+        const taSpecificFields = document.getElementById('ta-specific-fields');
+
+        // Function to toggle TA-specific fields
+        function toggleTAFields() {
+            if (roleSelect.value === 'TA') {
+                taSpecificFields.style.display = 'block';
+            } else {
+                taSpecificFields.style.display = 'none';
+            }
+        }
+
+        // Initial check
+        toggleTAFields();
+
+        // Listen for changes
+        roleSelect.addEventListener('change', toggleTAFields);
+    });
+</script>
 {% endblock %}
