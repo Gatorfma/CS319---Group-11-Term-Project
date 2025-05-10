@@ -8,10 +8,6 @@
 				<div class="alert alert-error">{{ form.non_field_errors }}</div>
 				{% endif %}
                 {{ form.as_p }}
-				<div class="textfield-header">Classroom List</div>
-					<div>
-						<textarea name="classroom_list" rows="10" cols="40" placeholder="Put Comma Between the Classrooms"></textarea>
-					</div>
                 <button type="submit">Upload</button>
 			</form>
     {% if error %}

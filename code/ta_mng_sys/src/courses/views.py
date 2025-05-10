@@ -3,9 +3,6 @@ from .forms import UploadExcelForm
 import openpyxl
 from django.http import HttpResponse
 
-# Create your views here.
-def export_student_classroom_dist(request):
-    return render(request, 'courses/export_student_classroom_dist.html')
 
 def upload_student_excell(request):
     data = []
@@ -17,11 +14,8 @@ def upload_student_excell(request):
         form = UploadExcelForm(request.POST, request.FILES)
 
         if form.is_valid():
-            excel_file = request.FILES.get('excel_file')
-            classroom_raw = request.POST.get('classroom_list', '')
-
-            # Parse classroom list
-            classrooms = [cls.strip() for cls in classroom_raw.split(',') if cls.strip()]
+            excel_file = form.cleaned_data['excel_file']
+            classrooms = form.cleaned_data['classroom_selection']  # This is a queryset
 
             if not excel_file.name.endswith('.xlsx'):
                 error = "Please upload a valid .xlsx file."
