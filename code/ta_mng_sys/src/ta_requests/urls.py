@@ -1,5 +1,14 @@
 from django.urls import path
-from .views import LeaveRequestCreateView, SwapRequestCreateView
+from .views import (
+    LeaveRequestCreateView,
+    LeaveRequestListView,
+    ManageLeaveRequestListView,
+    swap_request_view,
+    SwapRequestListView,
+    approve_leave_view,
+    reject_leave_view,
+    review_swap_requests_view
+)
 from django.views.generic import TemplateView
 
 app_name = 'ta_requests'
@@ -9,9 +18,11 @@ urlpatterns = [
     path('leave/success/', TemplateView.as_view(
             template_name='ta_requests/leave_success.html'),
          name='leave-success'),
-
-    path('swap/request/', SwapRequestCreateView.as_view(), name='swap-request'),
-    path('swap/success/', TemplateView.as_view(
-            template_name='ta_requests/swap_success.html'),
-         name='swap-success'),
+    path('leave/approve/<int:pk>/', approve_leave_view, name='leave-approve'),
+    path('leave/reject/<int:pk>/', reject_leave_view, name='leave-reject'),
+    path('leave/list/', LeaveRequestListView.as_view(), name='leave-list'),
+    path('leave/manage/', ManageLeaveRequestListView.as_view(), name='leave-manage'),
+    path('swap/request/', swap_request_view,   name='swap-request'),
+    path('swap/review/', review_swap_requests_view, name='swap-review'),
+    path('swap/list/',    SwapRequestListView.as_view(), name='swap-list'),
 ]

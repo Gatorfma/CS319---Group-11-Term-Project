@@ -8,6 +8,16 @@ from courses.models import Classroom, Exam
 from duties.models import ProctoringDuty
 from duties.forms import AutoProctoringAssignmentForm
 from decimal import Decimal
+from .forms import DutyLogForm
+from .models import DutyLog
+from django.contrib.auth.decorators import login_required
+from django.contrib.contenttypes.models import ContentType
+from django.utils.timezone      import now
+from accounts.models             import CustomUser
+
+from .forms    import DutyLogForm
+from .models   import DutyLog, LabDuty, GradingDuty, RecitationDuty, OfficeHourDuty, ProctoringDuty
+
 
 # Create your views here.
 def is_time_conflict(start1, end1, start2, end2):
@@ -514,3 +524,110 @@ def delete_exam_assignments_view(request, exam_id):
 
     messages.success(request, "All assignments for this exam have been deleted.")
     return redirect('duties:manage_exam_assignments')
+
+DUTY_MODEL_MAP = {
+    'lab':       LabDuty,
+    'grading':   GradingDuty,
+    'recitation':RecitationDuty,
+    'officehour':OfficeHourDuty,
+    'proctoring':ProctoringDuty,
+}
+
+@login_required
+def log_completed_duty(request):
+    if not hasattr(request.user, 'ta_profile'):
+        return redirect('home')  # güvenlik: TA olmayanlar girmesin
+
+    status = request.GET.get('status')
+    logs = None
+    submitted = False
+    form = None
+
+    # Eğer ?status parametresi varsa sadece logları göster
+    if status in ['all', 'A', 'P', 'R']:
+        logs = DutyLog.objects.filter(ta_profile=request.user.ta_profile)
+        if status != 'all':
+            logs = logs.filter(status=status)
+        logs = logs.order_by('-date_logged')
+    else:
+        # Form modundayız
+        if request.method == 'POST':
+            form = DutyLogForm(request.POST, user=request.user)
+            if form.is_valid():
+                offering = form.cleaned_data['offering']
+                duty_type = form.cleaned_data['duty_type']
+                minutes = form.cleaned_data['minutes_worked']
+
+                duty_model_map = {
+                    'lab':        LabDuty,
+                    'grading':    GradingDuty,
+                    'recitation': RecitationDuty,
+                    'officehour': OfficeHourDuty,
+                    'proctoring': ProctoringDuty,
+                }
+
+                model_cls = duty_model_map.get(duty_type)
+                duty = model_cls.objects.filter(
+                    offering=offering,
+                    assigned_ta=request.user.ta_profile
+                ).first()
+
+                if duty is None:
+                    form.add_error('offering', 'No matching duty assigned to you for this course and type.')
+                else:
+                    DutyLog.objects.create(
+                        duty_content_type=ContentType.objects.get_for_model(duty),
+                        duty_object_id=duty.pk,
+                        ta_profile=request.user.ta_profile,
+                        hours_spent=minutes / 60.0,
+                        description='',
+                        date_logged=now()
+                    )
+                    submitted = True
+                    form = DutyLogForm(user=request.user)  # formu temizle
+        else:
+            form = DutyLogForm(user=request.user)
+
+    return render(request, 'duties/log_completed_duty.html', {
+        'form': form,
+        'submitted': submitted,
+        'logs': logs,
+        'status': status,
+    })
+    
+@login_required
+def manage_duty_logs(request):
+    # only instructors or staff can access
+    if request.user.role not in {
+        CustomUser.Roles.INSTRUCTOR,
+        CustomUser.Roles.SECRETARY,
+        CustomUser.Roles.DEPT_CHAIR,
+        CustomUser.Roles.DEAN,
+        CustomUser.Roles.ADMIN,
+    }:
+        return redirect('home')
+
+    # fetch all pending duty log requests
+    pending_logs = DutyLog.objects.filter(status=DutyLog.Status.PENDING)
+
+    if request.method == 'POST':
+        log_id = request.POST.get('log_id')
+        action = request.POST.get('action')  # 'approve' or 'reject'
+
+        log = get_object_or_404(
+            DutyLog,
+            id=log_id,
+            status=DutyLog.Status.PENDING
+        )
+
+        # update status and record who processed it
+        log.status       = DutyLog.Status.APPROVED if action == 'approve' else DutyLog.Status.REJECTED
+        log.processed_by = request.user
+        log.processed_at = now()
+        log.save()
+
+        return redirect('duties:manage-duty-logs')
+
+    return render(request, 'duties/duty_log_manage.html', {
+        'logs': pending_logs,
+    })

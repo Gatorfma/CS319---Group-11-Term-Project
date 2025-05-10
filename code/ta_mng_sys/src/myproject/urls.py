@@ -14,4 +14,5 @@ urlpatterns = [
         ),  
      path("duties/", include("duties.urls")),
      path("courses/", include("courses.urls")),
+     path("requests/", include("ta_requests.urls")),
 ]

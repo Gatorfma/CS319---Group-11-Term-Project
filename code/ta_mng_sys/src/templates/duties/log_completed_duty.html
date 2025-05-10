@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="layout-content-container px-10 py-5 flex gap-8">
+
+  <!-- SIDEBAR -->
+  <aside class="w-64">
+    <nav class="flex flex-col gap-3">
+      <a href="?status=all"
+         class="{% if status == 'all' %}btn btn-accent{% else %}text-primary{% endif %} text-sm">
+        All
+      </a>
+      <a href="?status=A"
+         class="{% if status == 'A' %}btn btn-accent{% else %}text-primary{% endif %} text-sm">
+        Approved
+      </a>
+      <a href="?status=P"
+         class="{% if status == 'P' %}btn btn-accent{% else %}text-primary{% endif %} text-sm">
+        Pending
+      </a>
+      <a href="?status=R"
+         class="{% if status == 'R' %}btn btn-accent{% else %}text-primary{% endif %} text-sm">
+        Rejected
+      </a>
+
+      <a href="{% url 'duties:log-completed-duty' %}"
+         class="{% if status is None %}btn btn-accent{% else %}text-primary{% endif %} text-sm mt-4">
+        Duty Log Form
+      </a>
+    </nav>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="flex-1">
+    <h2 class="text-2xl font-bold mb-6">Log Completed Duty</h2>
+
+    {# — FORM MODE — #}
+    {% if status is None %}
+      <div class="card mb-6">
+        <div class="card-body">
+          <form method="post" class="flex flex-col gap-4 max-w-md">
+            {% csrf_token %}
+
+            <div class="form-group">
+              <label class="form-label" for="{{ form.offering.id_for_label }}">
+                {{ form.offering.label }}
+              </label>
+              {{ form.offering }}
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="{{ form.duty_type.id_for_label }}">
+                {{ form.duty_type.label }}
+              </label>
+              {{ form.duty_type }}
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="{{ form.minutes_worked.id_for_label }}">
+                {{ form.minutes_worked.label }}
+              </label>
+              {{ form.minutes_worked }}
+            </div>
+
+            <div class="flex justify-end">
+              <button type="submit" class="btn btn-accent">
+                Submit Duty Log
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      {% if submitted %}
+        <p class="text-muted text-center">
+          Your duty log has been submitted and is pending approval from the instructor.
+        </p>
+      {% endif %}
+    {% endif %}
+
+    {# — LOGS LIST MODE — #}
+    {% if status == 'all' or status == 'A' or status == 'P' or status == 'R' %}
+      <div class="card">
+        <div class="card-body">
+          {% if logs %}
+            <table class="table text-sm">
+              <thead>
+                <tr class="text-muted text-xs uppercase">
+                  <th>Date</th>
+                  <th>Duty</th>
+                  <th>Hours</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for log in logs %}
+                <tr class="border-b hover:bg-gray-50">
+                  <td>{{ log.date_logged|date:"M j, Y" }}</td>
+                  <td>{{ log.duty }}</td>
+                  <td>{{ log.hours_spent }}</td>
+                  <td>
+                    <span class="inline-block text-xs px-3 py-1 rounded-full
+                      {% if log.status == 'P' %}bg-gray-200 text-gray-800
+                      {% elif log.status == 'A' %}bg-green-100 text-green-800
+                      {% elif log.status == 'R' %}bg-red-100 text-red-800
+                      {% endif %}">
+                      {{ log.get_status_display }}
+                    </span>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          {% else %}
+            <p class="text-center text-muted py-4">No logs found.</p>
+          {% endif %}
+        </div>
+      </div>
+    {% endif %}
+
+  </main>
+</div>
+{% endblock %}
