@@ -28,7 +28,7 @@ class ExamAdmin(admin.ModelAdmin):
         'end_time',
         'num_proctors_required',
         'number_of_students',
-        'classroom',
+        'get_classrooms',
     )
     list_filter = (
         'date',
@@ -40,8 +40,12 @@ class ExamAdmin(admin.ModelAdmin):
         'course__course_code',
         'course__title',
     )
-    filter_horizontal = ('assigned_tas', 'students')
+    filter_horizontal = ('assigned_tas', 'students', 'classroom')
 
+    def get_classrooms(self, obj):
+        return ", ".join(str(c) for c in obj.classroom.all())
+    get_classrooms.short_description = "Classrooms"
+    
 # courses/admin.py
 @admin.register(CourseOffering)
 class CourseOfferingAdmin(admin.ModelAdmin):

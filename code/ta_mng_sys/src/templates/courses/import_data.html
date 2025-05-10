@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Import Data - TA Management System{% endblock %}
+
+{% block content %}
+<div class="layout-content-container px-10 py-5">
+  <h2 class="text-center text-primary mb-4">Import Data</h2>
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="text-muted text-center">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
+
+  <div class="flex flex-col gap-4">
+    {% for import_type, label in import_types %}
+      <div class="card">
+        <div class="card-header">{{ label }}</div>
+        <div class="card-body">
+          <form method="post" enctype="multipart/form-data" class="flex flex-col gap-4">
+            {% csrf_token %}
+            <input type="hidden" name="import_type" value="{{ import_type }}" />
+            <input type="file" name="{{ import_type }}_file" class="form-input" required />
+            <div class="flex justify-center">
+              <button type="submit" class="btn btn-accent">Upload {{ label }}</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+  <div class="text-center">
+    <a href="{% url 'home' %}" class="btn btn-alt mt-4">&larr; Back to Home</a>
+  </div>
+</div>
+{% endblock %}
