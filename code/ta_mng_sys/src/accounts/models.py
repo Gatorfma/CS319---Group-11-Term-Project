@@ -18,6 +18,14 @@ class CustomUser(AbstractUser):
         default=Roles.TA,
         help_text="Determines menu items & permissions."
     )
+    @property
+    def admin_roles(self):
+        return {
+            self.Roles.SECRETARY,
+            self.Roles.DEPT_CHAIR,
+            self.Roles.DEAN, 
+            self.Roles.ADMIN
+        }
     employee_id  = models.CharField(max_length=20, blank=True, null=True)
     department   = models.CharField(max_length=50, blank=True, null=True)
     phone_number = models.CharField(max_length=20, blank=True, null=True)
