@@ -42,7 +42,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'duties',
-    'notifications'
+    'notifications',
+    'ta_requests'
 ]
 
 AUTH_USER_MODEL = "accounts.CustomUser"

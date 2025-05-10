@@ -1,0 +1,20 @@
+{% extends 'base.html' %} {% block content %}
+<div class="container">
+  <h2>Leave of Absence Request</h2>
+  <form method="post" class="leave-request-form">
+    {% csrf_token %} {{ form.non_field_errors }}
+    <div class="form-group">
+      {{ form.start_date.label_tag }} {{ form.start_date }} {{
+      form.start_date.errors }}
+    </div>
+    <div class="form-group">
+      {{ form.end_date.label_tag }} {{ form.end_date }} {{ form.end_date.errors
+      }}
+    </div>
+    <div class="form-group">
+      {{ form.reason.label_tag }} {{ form.reason }} {{ form.reason.errors }}
+    </div>
+    <button type="submit" class="btn btn-primary">Submit Request</button>
+  </form>
+</div>
+{% endblock %}
