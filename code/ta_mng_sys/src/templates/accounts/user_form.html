@@ -1,10 +1,13 @@
-{% extends "base.html" %} {% block title %}Create User{% endblock %} {% block content %}
+{% extends "base.html" %}
+{% block title %}{% if title %}{{ title }}{% else %}User Form{% endif %}{% endblock %}
+{% block content %}
 <div class="layout-content-container px-10 py-5">
 	<div class="card mx-auto" style="max-width: 800px">
-		<div class="card-header">Create New User</div>
+		<div class="card-header">{% if title %}{{ title }}{% else %}Create New User{% endif %}</div>
 		<div class="card-body">
 			<form method="post">
-				{% csrf_token %} {% if form.non_field_errors %}
+				{% csrf_token %}
+				{% if form.non_field_errors %}
 				<div class="alert alert-error">{{ form.non_field_errors }}</div>
 				{% endif %}
 
@@ -41,17 +44,29 @@
 						{{ form.phone_number.label_tag }} {{ form.phone_number }} {{ form.phone_number.errors }}
 					</div>
 
-					{# password fields span both columns #}
+					{% if form.is_active %}
+					{# Active status checkbox (for edit only) #}
+					<div class="form-group col-span-2">
+						{{ form.is_active.label_tag }} {{ form.is_active }} {{ form.is_active.errors }}
+					</div>
+					{% endif %}
+
+					{# password fields span both columns - only shown for create #}
+					{% if form.password1 %}
 					<div class="form-group col-span-2">
 						{{ form.password1.label_tag }} {{ form.password1 }} {{ form.password1.errors }}
 					</div>
 					<div class="form-group col-span-2">
 						{{ form.password2.label_tag }} {{ form.password2 }} {{ form.password2.errors }}
 					</div>
+					{% endif %}
 				</div>
 
 				<div class="text-center">
-					<button type="submit" class="btn btn-accent">Create User</button>
+					<button type="submit" class="btn btn-accent">
+						{% if button_text %}{{ button_text }}{% elif form.instance.pk %}Save Changes{% else %}Create
+						User{% endif %}
+					</button>
 				</div>
 			</form>
 		</div>
