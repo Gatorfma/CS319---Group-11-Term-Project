@@ -75,14 +75,14 @@
 				<li><a href="{% url 'duties:manage_exam_assignments' %}" class="btn btn-alt">Manage Proctoring</a></li>
 			    <li><a href="{% url 'duties:see_proctoring_duties' %}" class="btn btn-alt">Proctoring Duties</a></li>
 	          {% endif %}
-
 	            {% if user.role in user.Roles.admin_roles %}
 	            <li><a href="{% url 'accounts:user_list' %}" class="btn btn-alt">Manage Users</a></li>
 	            {% endif %}
 
 				{% if user.role != user.Roles.TA and user.role in user.Roles.admin_roles or user.is_staff %}
 				<li><a href="{% url 'logs:dashboard' %}" class="btn btn-alt">System Logs</a></li>
-				{% endif %}
+				<li><a href="{% url 'duties:manage_exam_assignments' %}" class="btn btn-alt">Manage Proctoring</a></li>
+        {% endif %}
 
 	            {% if user.role == user.Roles.ADMIN or user.is_staff %}
 	            <li><a href="{% url 'admin:index' %}" class="btn btn-alt">Admin Dashboard</a></li>
