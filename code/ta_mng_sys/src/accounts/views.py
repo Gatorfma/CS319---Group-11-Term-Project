@@ -31,6 +31,15 @@ def assign_ta_to_courses(request):
             ta = form.cleaned_data['ta']
             selected_courses = form.cleaned_data['course_offerings']
 
+            # Check if the TA is already assigned to the selected courses
+            if selected_courses.tas.filter(user=ta.user).exists():
+                messages.error(request, f"{ta} is already assigned to the selected courses.")
+                return redirect('accounts:assign_ta_to_courses')
+            # Check if the selected courses are already assigned to the TA
+            if ta.assigned_course_offerings.filter(id=selected_courses.id).exists():
+                messages.error(request, f"{ta} is already assigned to the selected courses.")
+                return redirect('accounts:assign_ta_to_courses')
+            
             # Update both sides of the relationship
             ta.assigned_course_offerings.add(selected_courses)
             selected_courses.tas.add(ta)  # update the CourseOffering model side too
