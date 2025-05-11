@@ -1,6 +1,6 @@
 from django.urls import path
-from .views import get_offerings_for_duty_type, manage_duty_logs, auto_assign_proctors_view, assign_classrooms_view, delete_exam_assignments_view, edit_exam_assignment_view, get_exams_by_course, get_proctoring_duties, manage_exam_assignments_view, manual_assign_proctors_view, see_proctoring_duties_view, select_exam_for_manual_assignment, log_completed_dutyfrom .views import DutyListView, DutyDetailView, CreateDutyView
-from .views import AssignTAsView
+from .views import get_offerings_for_duty_type, manage_duty_logs, auto_assign_proctors_view, assign_classrooms_view, delete_exam_assignments_view, edit_exam_assignment_view, get_exams_by_course, get_proctoring_duties, manage_exam_assignments_view, manual_assign_proctors_view, see_proctoring_duties_view, select_exam_for_manual_assignment, log_completed_duty
+from .views import DutyListView, DutyDetailView, CreateDutyView, AssignTAsView, log_completed_duty
 app_name = "duties"
 
 urlpatterns = [
