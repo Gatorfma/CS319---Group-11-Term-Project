@@ -28,7 +28,6 @@
 							<p>Create and view your duty logs.</p>
 							<div class="mt-3">
 								<a href="{% url 'duties:log-completed-duty' %}" class="btn btn-sm btn-primary">Log Duty</a>
-								<a href="#" class="btn btn-sm">View My Logs</a>
 							</div>
 						</div>
 					</div>
@@ -66,7 +65,7 @@
 						<div class="card-body">
 							<p>Approve duty logs and manage TA assignments.</p>
 							<div class="mt-3">
-								<a href="#" class="btn btn-sm btn-primary">Approve Logs</a>
+								<a href="{% url 'duties:manage-duty-logs' %}" class="btn btn-sm btn-primary">Approve Logs</a>
 							</div>
 						</div>
 					</div>
