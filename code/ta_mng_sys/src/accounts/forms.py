@@ -41,3 +41,8 @@ class AssignTAForm(forms.Form):
         queryset=CourseOffering.objects.all(),
         label="Course Offering"
     )
+
+class AssignTAFormExcell(forms.Form):
+    excell_file = forms.FileField(
+        label="Upload Excell File"
+    )

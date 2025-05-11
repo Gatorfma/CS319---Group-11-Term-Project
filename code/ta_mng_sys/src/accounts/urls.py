@@ -11,5 +11,6 @@ urlpatterns = [
     path("users/",        UserListView.as_view(),   name="user_list"),
     path("users/create/", UserCreateView.as_view(), name="user_create"),
     path("assign_ta_to_courses/", views.assign_ta_to_courses, name="assign_ta_to_courses"),
+    path("assign_ta_to_courses_excell/", views.assign_ta_to_courses_excell, name="assign_ta_to_courses_excell"),
     path('instructor/ta_workloads/', views.instructor_ta_workload_view, name='instructor_ta_workloads'),
 ]
