@@ -15,27 +15,31 @@
 			{% endif %}
 
 
-			{% if user.role == user.Roles.INSTRUCTOR %}
-			<li><a href="#" class="btn btn-alt">Approve Logs</a></li>
-			<li><a href="#" class="btn btn-alt">Create Duties</a></li>
-			{% endif %}
+				{% if user.role == user.Roles.INSTRUCTOR %}
+				<li><a href="#" class="btn btn-alt">Approve Logs</a></li>
+				<li><a href="#" class="btn btn-alt">Create Duties</a></li>
+				{% endif %}
 
-			{% if user.role in user.Roles.admin_roles %}
-			<li><a href="{% url 'accounts:user_list' %}" class="btn btn-alt">Manage Users</a></li>
-			{% endif %}
+				{% if user.role in user.Roles.admin_roles %}
+				<li><a href="{% url 'accounts:user_list' %}" class="btn btn-alt">Manage Users</a></li>
+				{% endif %}
 
-			{% if user.role == user.Roles.ADMIN or user.is_staff %}
-			<li><a href="{% url 'admin:index' %}" class="btn btn-alt">Admin Dashboard</a></li>
-			{% endif %}
+				{% if user.role != user.Roles.TA and user.role in user.Roles.admin_roles or user.is_staff %}
+				<li><a href="{% url 'logs:dashboard' %}" class="btn btn-alt">System Logs</a></li>
+				{% endif %}
 
-			<li>
-				<form action="{% url 'accounts:logout' %}" method="post" style="display: inline">
-					{% csrf_token %}
-					<button type="submit" class="btn btn-alt">Logout</button>
-				</form>
-			</li>
+				{% if user.role == user.Roles.ADMIN or user.is_staff %}
+				<li><a href="{% url 'admin:index' %}" class="btn btn-alt">Admin Dashboard</a></li>
+				{% endif %}
+
+				<li>
+					<form action="{% url 'accounts:logout' %}" method="post" style="display: inline">
+						{% csrf_token %}
+						<button type="submit" class="btn btn-alt">Logout</button>
+					</form>
+				</li>
 			{% else %}
-			<li><a href="{% url 'accounts:login' %}" class="btn btn-alt">Login</a></li>
+				<li><a href="{% url 'accounts:login' %}" class="btn btn-alt">Login</a></li>
 			{% endif %}
 		</ul>
 	</div>
