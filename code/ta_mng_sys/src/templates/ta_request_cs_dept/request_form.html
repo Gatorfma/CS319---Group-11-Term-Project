@@ -1,0 +1,319 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if object %}Edit TA Request{% else %}New TA Request{% endif %}{% endblock %}
+
+{% block extra_head %}
+<style>
+  .preference-order {
+    width: 100%;
+    margin-bottom: 1rem;
+  }
+  
+  .ta-selection {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+  
+  .ta-selection select {
+    flex: 1;
+  }
+  
+  .preference-container {
+    border: 1px solid var(--color-header-bd);
+    border-radius: var(--radius-xl);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .preference-title {
+    margin-bottom: 1rem;
+    font-weight: bold;
+  }
+  
+  .add-row-btn {
+    margin-top: 1rem;
+  }
+  
+  .remove-row-btn {
+    background: none;
+    border: none;
+    color: #ff4d4d;
+    cursor: pointer;
+  }
+  
+  .semester-info {
+    background-color: var(--color-btn-alt);
+    padding: 0.75rem;
+    border-radius: var(--radius-xl);
+    margin-bottom: 1rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="layout-content-container px-10">
+  <h1 class="py-5">
+    {% if object %}Edit TA Request for {{ object.course }}{% else %}New TA Request{% endif %}
+  </h1>
+  
+  <div class="semester-info">
+    <p><strong>Semester:</strong> {{ semester.name }}</p>
+    <p><strong>Request Period:</strong> {{ semester.request_start_date|date:"M d, Y" }} to {{ semester.request_end_date|date:"M d, Y" }}</p>
+  </div>
+  
+  <div class="card">
+    <form method="post" id="ta-request-form">
+      {% csrf_token %}
+      
+      <div class="card-body">
+        <!-- Error display -->
+        {% if form.errors %}
+          <div class="alert alert-error">
+            Please correct the errors below.
+          </div>
+        {% endif %}
+        
+        <!-- Basic course information -->
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Course</label>
+            {{ form.course }}
+            {{ form.instructor }}
+          </div>
+        </div>
+        
+        <!-- TA loads and graders -->
+        <h3 class="py-3">TA & Grader Requirements</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Minimum TA Loads</label>
+            {{ form.min_ta_loads }}
+            {{ form.min_ta_loads.errors }}
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Maximum TA Loads</label>
+            {{ form.max_ta_loads }}
+            {{ form.max_ta_loads.errors }}
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Number of Graders</label>
+            {{ form.graders_requested }}
+            {{ form.graders_requested.errors }}
+          </div>
+        </div>
+        
+        <!-- Must-have TAs -->
+        <div class="preference-container">
+          <h3 class="preference-title">Must-Have TAs</h3>
+          <p class="text-muted">Select TAs that are absolutely necessary for your course, in priority order</p>
+          
+          <div id="must-have-tas-container">
+            <!-- Populated by JavaScript -->
+          </div>
+          <button type="button" class="btn btn-alt add-row-btn" id="add-must-have-ta">
+            + Add Must-Have TA
+          </button>
+          
+          <div class="form-group mt-3">
+            <label class="form-label">Justification for Must-Have TAs</label>
+            {{ form.must_have_justification }}
+            {{ form.must_have_justification.errors }}
+          </div>
+        </div>
+        
+        <!-- Preferred TAs -->
+        <div class="preference-container">
+          <h3 class="preference-title">Preferred TAs (In Order of Preference)</h3>
+          <div id="preferred-tas-container">
+            <!-- Populated by JavaScript -->
+          </div>
+          <button type="button" class="btn btn-alt add-row-btn" id="add-preferred-ta">
+            + Add Preferred TA
+          </button>
+        </div>
+        
+        <!-- Preferred Graders -->
+        <div class="preference-container">
+          <h3 class="preference-title">Preferred Graders (In Order of Preference)</h3>
+          <div id="preferred-graders-container">
+            <!-- Populated by JavaScript -->
+          </div>
+          <button type="button" class="btn btn-alt add-row-btn" id="add-preferred-grader">
+            + Add Preferred Grader
+          </button>
+        </div>
+        
+        <!-- TAs to avoid -->
+        <div class="preference-container">
+          <h3 class="preference-title">TAs to Avoid (In Order of Priority)</h3>
+          <div id="avoid-tas-container">
+            <!-- Populated by JavaScript -->
+          </div>
+          <button type="button" class="btn btn-alt add-row-btn" id="add-avoid-ta">
+            + Add TA to Avoid
+          </button>
+        </div>
+        
+        <!-- Graders to avoid -->
+        <div class="preference-container">
+          <h3 class="preference-title">Graders to Avoid (In Order of Priority)</h3>
+          <div id="avoid-graders-container">
+            <!-- Populated by JavaScript -->
+          </div>
+          <button type="button" class="btn btn-alt add-row-btn" id="add-avoid-grader">
+            + Add Grader to Avoid
+          </button>
+        </div>
+        
+        <!-- Additional justification -->
+        <div class="form-group">
+          <label class="form-label">Additional Justification/Comments</label>
+          {{ form.general_justification }}
+          {{ form.general_justification.errors }}
+        </div>
+      </div>
+      
+      <div class="card-footer flex justify-end gap-3">
+        <a href="{% url 'ta_request_cs_dept:list' %}" class="btn btn-alt">Cancel</a>
+        <button type="submit" class="btn btn-accent">
+          {% if object %}Update Request{% else %}Submit Request{% endif %}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  // TA selection templates and counters
+  let mustHaveTaCount = 0;
+  let preferredTaCount = 0;
+  let preferredGraderCount = 0;
+  let avoidTaCount = 0;
+  let avoidGraderCount = 0;
+  
+  const allTAs = [
+    {% for ta in tas %}
+      {
+        id: "{{ ta.id }}",
+        name: "{{ ta.user.get_full_name|default:ta.user.username }} ({{ ta.get_ta_type_display }})"
+      }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+  ];
+  
+  // Generic function to add a preference row
+  function addPreferenceRow(containerId, counterVar, namePrefix, taId = '', onRemove = null) {
+    const counter = window[counterVar]++;
+    const rowId = `${namePrefix.replace(/_/g, '-')}-row-${counter}`;
+    const rowHtml = `
+      <div class="ta-selection" id="${rowId}">
+        <span>${counter + 1}.</span>
+        <select name="${namePrefix}${counter + 1}" class="form-select">
+          <option value="">Select a TA</option>
+          ${allTAs.map(ta => `
+            <option value="${ta.id}" ${ta.id == taId ? 'selected' : ''}>
+              ${ta.name}
+            </option>
+          `).join('')}
+        </select>
+        <button type="button" class="remove-row-btn" 
+                onclick="removePreferenceRow('${rowId}', '${containerId}', '${namePrefix}')">
+          Remove
+        </button>
+      </div>
+    `;
+    document.getElementById(containerId).insertAdjacentHTML('beforeend', rowHtml);
+    
+    if (onRemove) {
+      document.querySelector(`#${rowId} .remove-row-btn`).addEventListener('click', onRemove);
+    }
+  }
+  
+  // Remove a preference row and renumber remaining rows
+  function removePreferenceRow(rowId, containerId, namePrefix) {
+    const row = document.getElementById(rowId);
+    if (row) {
+      row.remove();
+      
+      // Renumber the remaining rows
+      const container = document.getElementById(containerId);
+      const rows = container.querySelectorAll('.ta-selection');
+      rows.forEach((row, index) => {
+        row.querySelector('span').textContent = `${index + 1}.`;
+        
+        // Update the select name to maintain sequential ordering
+        const select = row.querySelector('select');
+        select.name = `${namePrefix}${index + 1}`;
+      });
+    }
+  }
+  
+  // Add event listeners for the "Add" buttons
+  document.addEventListener('DOMContentLoaded', function() {
+    // Setup add buttons for each preference type
+    document.getElementById('add-must-have-ta').addEventListener('click', function() {
+      addPreferenceRow('must-have-tas-container', 'mustHaveTaCount', 'must_have_ta_');
+    });
+    
+    document.getElementById('add-preferred-ta').addEventListener('click', function() {
+      addPreferenceRow('preferred-tas-container', 'preferredTaCount', 'preferred_ta_');
+    });
+    
+    document.getElementById('add-preferred-grader').addEventListener('click', function() {
+      addPreferenceRow('preferred-graders-container', 'preferredGraderCount', 'preferred_grader_');
+    });
+    
+    document.getElementById('add-avoid-ta').addEventListener('click', function() {
+      addPreferenceRow('avoid-tas-container', 'avoidTaCount', 'avoid_ta_');
+    });
+    
+    document.getElementById('add-avoid-grader').addEventListener('click', function() {
+      addPreferenceRow('avoid-graders-container', 'avoidGraderCount', 'avoid_grader_');
+    });
+    
+    // Load existing preferences if any
+    {% if must_have_tas %}
+      {% for pref in must_have_tas %}
+        addPreferenceRow('must-have-tas-container', 'mustHaveTaCount', 'must_have_ta_', "{{ pref.ta_id }}");
+      {% endfor %}
+    {% else %}
+      addPreferenceRow('must-have-tas-container', 'mustHaveTaCount', 'must_have_ta_');
+    {% endif %}
+    
+    {% if preferred_tas %}
+      {% for pref in preferred_tas %}
+        addPreferenceRow('preferred-tas-container', 'preferredTaCount', 'preferred_ta_', "{{ pref.ta_id }}");
+      {% endfor %}
+    {% else %}
+      addPreferenceRow('preferred-tas-container', 'preferredTaCount', 'preferred_ta_');
+    {% endif %}
+    
+    {% if preferred_graders %}
+      {% for pref in preferred_graders %}
+        addPreferenceRow('preferred-graders-container', 'preferredGraderCount', 'preferred_grader_', "{{ pref.ta_id }}");
+      {% endfor %}
+    {% else %}
+      addPreferenceRow('preferred-graders-container', 'preferredGraderCount', 'preferred_grader_');
+    {% endif %}
+    
+    {% if tas_to_avoid %}
+      {% for pref in tas_to_avoid %}
+        addPreferenceRow('avoid-tas-container', 'avoidTaCount', 'avoid_ta_', "{{ pref.ta_id }}");
+      {% endfor %}
+    {% else %}
+      addPreferenceRow('avoid-tas-container', 'avoidTaCount', 'avoid_ta_');
+    {% endif %}
+    
+    {% if graders_to_avoid %}
+      {% for pref in graders_to_avoid %}
+        addPreferenceRow('avoid-graders-container', 'avoidGraderCount', 'avoid_grader_', "{{ pref.ta_id }}");
+      {% endfor %}
+    {% else %}
+      addPreferenceRow('avoid-graders-container', 'avoidGraderCount', 'avoid_grader_');
+    {% endif %}
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,409 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+  .ta-selection-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+  
+  .ta-card {
+    border: 2px solid var(--color-btn-alt);
+    border-radius: 0.75rem;
+    padding: 1rem;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    cursor: pointer;
+  }
+  
+  .ta-card:hover {
+    border-color: var(--color-accent);
+    background-color: rgba(var(--color-accent-rgb), 0.05);
+  }
+  
+  .ta-card.selected {
+    border-color: var(--color-accent);
+    background-color: rgba(var(--color-accent-rgb), 0.1);
+  }
+  
+  .ta-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background-color: var(--color-btn-alt);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    color: var(--color-text);
+    flex-shrink: 0;
+  }
+  
+  .ta-info {
+    flex-grow: 1;
+    overflow: hidden;
+    color: rgb(180, 10, 218)
+  }
+  
+  .ta-name {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .ta-username {
+    font-size: 0.875rem;
+    color: var(--color-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .ta-checkbox {
+    display: none;
+  }
+  
+  .ta-checkbox-indicator {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 2px solid var(--color-btn-alt);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    /* Remove the checkmark content and make it a hollow circle */
+    content: "";
+    background-color: transparent;
+  }
+  
+  .ta-card.selected .ta-checkbox-indicator {
+    border-color: rgb(180, 10, 218);
+    background-color: rgb(180, 10, 218);
+    /* No content needed as we're just filling the circle */
+  }
+  
+  .duty-details-card {
+    padding: 1.5rem;
+    background-color: var(--color-btn-alt);
+    border-radius: 0.75rem;
+    margin-bottom: 2rem;
+  }
+  
+  .duty-meta {
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+    margin-top: 1rem;
+  }
+  
+  .duty-meta-item {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .duty-meta-label {
+    font-size: 0.875rem;
+    color: var(--color-muted);
+    margin-bottom: 0.25rem;
+  }
+  
+  .duty-meta-value {
+    font-weight: 600;
+  }
+  
+  .search-filter-section {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .search-input {
+    flex-grow: 1;
+    padding: 0.75rem 1rem;
+    border: none;
+    border-radius: 0.5rem;
+    background-color: var(--color-btn-alt);
+  }
+  
+  .selected-count {
+    background-color: var(--color-accent);
+    color: rgb(180, 10, 218);
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin-left: 0.5rem;
+  }
+  
+  .filter-section {
+    margin-top: 1rem;
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+  }
+  
+  .filter-tag {
+    background-color: var(--color-btn-alt);
+    border-radius: 1rem;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .filter-tag:hover {
+    background-color: rgb(180, 10, 218);
+  }
+  
+  .filter-tag.active {
+    background-color: var(--color-accent);
+    color: rgb(180, 10, 218);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    font-weight: 500;
+  }
+  
+  .assigned-badge {
+    background-color: var(--color-success);
+    color: rgb(180, 10, 218);
+    font-size: 0.75rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 0.75rem;
+    margin-left: 0.5rem;
+    white-space: nowrap;
+  }
+  
+  .already-assigned-badge {
+    background-color: rgb(180, 10, 218);
+    color: white;
+    font-size: 0.75rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 0.75rem;
+    margin-left: 0.5rem;
+    white-space: nowrap;
+  }
+</style>
+
+<div class="layout-content-container px-10 py-5">
+  <h2 class="text-primary mb-4">Assign Teaching Assistants</h2>
+  
+  <div class="duty-details-card">
+    <div class="text-lg font-bold">{{ duty.get_type_slug|title }} Duty for {{ duty.offering }}</div>
+    <div class="duty-meta">
+      <div class="duty-meta-item">
+        <span class="duty-meta-label">Date</span>
+        <span class="duty-meta-value">{{ duty.date }}</span>
+      </div>
+      <div class="duty-meta-item">
+        <span class="duty-meta-label">Time</span>
+        <span class="duty-meta-value">{{ duty.start_time }} - {{ duty.end_time }}</span>
+      </div>
+      <div class="duty-meta-item">
+        <span class="duty-meta-label">Duration</span>
+        <span class="duty-meta-value">{{ duty.duration_hours }} hours</span>
+      </div>
+      {% if duty.description %}
+      <div class="duty-meta-item">
+        <span class="duty-meta-label">Description</span>
+        <span class="duty-meta-value">{{ duty.description }}</span>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  
+  <form method="post" id="assign-form">
+    {% csrf_token %}
+    
+    <div class="search-filter-section">
+      <input type="text" placeholder="Search TAs..." class="search-input" id="ta-search">
+      <span class="selected-count">0 selected</span>
+    </div>
+    
+    <div class="filter-section">
+      <div class="filter-tag active" data-filter="all">All TAs</div>
+      <div class="filter-tag" data-filter="phd">PhD TAs</div>
+      <div class="filter-tag" data-filter="grad">MS TAs</div>
+      {% if duty.offering %}
+      <div class="filter-tag" data-filter="assigned-course">Assigned to Course</div>
+      {% endif %}
+      <div class="filter-tag" data-filter="assigned-duty">Currently Assigned</div>
+    </div>
+
+    <div class="ta-selection-grid">
+      {% for ta in form.fields.tas.queryset %}
+        {% with is_assigned_to_duty=False %}
+          {% for assigned_ta in duty.assigned_ta_list.all %}
+            {% if assigned_ta.id == ta.id %}
+              {% with is_assigned_to_duty=True %}{% endwith %}
+            {% endif %}
+          {% endfor %}
+          <div class="ta-card {% if ta.id in form.initial.tas %}selected{% endif %}" 
+               data-ta-name="{{ ta.user.get_full_name|lower }}" 
+               data-ta-username="{{ ta.user.username|lower }}" 
+               data-ta-type="{{ ta.ta_type|lower }}"
+               data-is-assigned-to-course="{% if duty.offering in ta.assigned_course_offerings.all %}true{% else %}false{% endif %}"
+               data-is-assigned-to-duty="{% if ta in duty.assigned_ta_list.all %}true{% else %}false{% endif %}">
+            <input type="checkbox" name="tas" value="{{ ta.id }}" class="ta-checkbox" {% if ta in duty.assigned_ta_list.all %}checked{% endif %}>
+            <div class="ta-avatar">{{ ta.user.get_full_name|slice:":1" }}</div>
+            <div class="ta-info">
+              <div class="ta-name">
+                {{ ta.user.get_full_name }}
+                {% if ta in duty.assigned_ta_list.all %}
+                  <span class="already-assigned-badge">Currently Assigned</span>
+                {% endif %}
+                {% if duty.offering in ta.assigned_course_offerings.all %}
+                  <span class="assigned-badge">Course TA</span>
+                {% endif %}
+              </div>
+              <div class="ta-username">{{ ta.user.username }} ({{ ta.ta_type }})</div>
+            </div>
+            <div class="ta-checkbox-indicator"></div>
+          </div>
+        {% endwith %}
+      {% endfor %}
+    </div>
+    <input type="hidden" id="removed-tas" name="removed_tas" value="">
+    <div class="flex justify-end gap-4 mt-6">
+      <a href="{% url 'duties:detail' duty_type=duty.get_type_slug duty_id=duty.id %}" class="btn btn-alt">Cancel</a>
+      <button type="submit" class="btn btn-accent">Save Assignments</button>
+    </div>
+  </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Handle TA card selection
+  const taCards = document.querySelectorAll('.ta-card');
+  const checkboxes = document.querySelectorAll('.ta-checkbox');
+  const selectedCount = document.querySelector('.selected-count');
+  
+  function updateSelectedCount() {
+    const count = document.querySelectorAll('.ta-checkbox:checked').length;
+    selectedCount.textContent = count + ' selected';
+  }
+
+   // Track initially assigned TAs to detect removals
+   const initiallyAssigned = new Set();
+  checkboxes.forEach(checkbox => {
+    if (checkbox.checked) {
+      initiallyAssigned.add(checkbox.value);
+    }
+  });
+  
+  function updateSelectedCount() {
+    const count = document.querySelectorAll('.ta-checkbox:checked').length;
+    selectedCount.textContent = count + ' selected';
+  }
+  
+  // Fixed event handling to properly toggle selection
+  taCards.forEach(card => {
+    card.addEventListener('click', function(e) {
+      // Don't toggle if clicking on the checkbox itself (prevent double toggle)
+      if (e.target.type === 'checkbox') return;
+      
+      const checkbox = this.querySelector('.ta-checkbox');
+      checkbox.checked = !checkbox.checked;
+      this.classList.toggle('selected', checkbox.checked);
+      updateSelectedCount();
+    });
+  });
+  
+  // Separate event for checkboxes to handle direct clicks correctly
+  checkboxes.forEach(checkbox => {
+    checkbox.addEventListener('change', function(e) {
+      // Update the card selected state based on checkbox state
+      const card = this.closest('.ta-card');
+      card.classList.toggle('selected', this.checked);
+      updateSelectedCount();
+      // Stop propagation to prevent the card click handler from firing
+      e.stopPropagation();
+    });
+  });
+  
+  // Initialize selected state based on initial checkbox values
+  checkboxes.forEach(checkbox => {
+    const card = checkbox.closest('.ta-card');
+    card.classList.toggle('selected', checkbox.checked);
+  });
+  
+  updateSelectedCount();
+  
+  // Search functionality
+  const searchInput = document.getElementById('ta-search');
+  
+  searchInput.addEventListener('input', function() {
+    const searchTerm = this.value.toLowerCase();
+    
+    taCards.forEach(card => {
+      const taName = card.dataset.taName;
+      const taUsername = card.dataset.taUsername;
+      const isVisible = taName.includes(searchTerm) || taUsername.includes(searchTerm);
+      
+      card.style.display = isVisible ? '' : 'none';
+    });
+  });
+  
+  // Fixed filter functionality
+  const filterTags = document.querySelectorAll('.filter-tag');
+  
+  filterTags.forEach(tag => {
+    tag.addEventListener('click', function() {
+      // Update active state
+      filterTags.forEach(t => t.classList.remove('active'));
+      this.classList.add('active');
+      
+      const filter = this.dataset.filter;
+      
+      taCards.forEach(card => {
+        let shouldShow = true;
+        
+        if (filter === 'phd') {
+          shouldShow = card.dataset.taType === 'phd';
+        } else if (filter === 'grad') {
+          shouldShow = card.dataset.taType === 'grad';
+        } else if (filter === 'assigned-course') {
+          shouldShow = card.dataset.isAssignedToCourse === 'true';
+        } else if (filter === 'assigned-duty') {
+          shouldShow = card.dataset.isAssignedToDuty === 'true';
+        }
+        
+        if (shouldShow && searchInput.value) {
+          const searchTerm = searchInput.value.toLowerCase();
+          const taName = card.dataset.taName;
+          const taUsername = card.dataset.taUsername;
+          shouldShow = taName.includes(searchTerm) || taUsername.includes(searchTerm);
+        }
+        
+        card.style.display = shouldShow ? '' : 'none';
+      });
+    });
+  });
+  
+  // Ensure form submit works correctly
+  document.getElementById('assign-form').addEventListener('submit', function(e) {
+
+    const removedTAs = [];
+    
+    initiallyAssigned.forEach(taId => {
+      const checkbox = document.querySelector(`.ta-checkbox[value="${taId}"]`);
+      if (checkbox && !checkbox.checked) {
+        removedTAs.push(taId);
+      }
+    });
+    
+    // Set the hidden field with the removed TA IDs
+    document.getElementById('removed-tas').value = removedTAs.join(',');
+    // Make sure checkboxes are properly updated before submission
+    checkboxes.forEach(checkbox => {
+      checkbox.checked = checkbox.closest('.ta-card').classList.contains('selected');
+    });
+  });
+});
+</script>
+{% endblock %}

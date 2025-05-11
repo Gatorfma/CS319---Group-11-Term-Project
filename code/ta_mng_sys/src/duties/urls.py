@@ -1,5 +1,6 @@
 from django.urls import path
-from .views import get_offerings_for_duty_type, manage_duty_logs, auto_assign_proctors_view, assign_classrooms_view, delete_exam_assignments_view, edit_exam_assignment_view, get_exams_by_course, get_proctoring_duties, manage_exam_assignments_view, manual_assign_proctors_view, see_proctoring_duties_view, select_exam_for_manual_assignment, log_completed_duty
+from .views import get_offerings_for_duty_type, manage_duty_logs, auto_assign_proctors_view, assign_classrooms_view, delete_exam_assignments_view, edit_exam_assignment_view, get_exams_by_course, get_proctoring_duties, manage_exam_assignments_view, manual_assign_proctors_view, see_proctoring_duties_view, select_exam_for_manual_assignment, log_completed_dutyfrom .views import DutyListView, DutyDetailView, CreateDutyView
+from .views import AssignTAsView
 app_name = "duties"
 
 urlpatterns = [
@@ -18,4 +19,12 @@ urlpatterns = [
     path('see-proctoring-duties/', see_proctoring_duties_view, name='see_proctoring_duties'),
 
 
+     path("create/", CreateDutyView.as_view(), name="create"),
+    path("", DutyListView.as_view(), name="list"),
+    path("<str:duty_type>/<int:duty_id>/", DutyDetailView.as_view(), name="detail"),
+     path(
+        '<str:duty_type>/<int:duty_id>/assign/',
+        AssignTAsView.as_view(),
+        name='assign_tas'
+    ),
 ]

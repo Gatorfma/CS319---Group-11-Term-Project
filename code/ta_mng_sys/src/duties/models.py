@@ -52,6 +52,22 @@ class Duty(models.Model):
         help_text='TA assigned to this duty'
     )
 
+    def get_type_slug(self):
+        return {
+            "LabDuty": "lab",
+            "GradingDuty": "grading",
+            "RecitationDuty": "recitation",
+            "OfficeHourDuty": "office",  # ✅ fix this
+            "ProctoringDuty": "proctoring",
+        }.get(self.__class__.__name__.strip(), "unknown")
+
+    assigned_ta_list = models.ManyToManyField(
+    TAProfile,
+    blank=True,
+    related_name='%(class)sdutiees',
+    help_text='TA assigned to this duty'
+    )
+
     class Meta:
         abstract = True
 

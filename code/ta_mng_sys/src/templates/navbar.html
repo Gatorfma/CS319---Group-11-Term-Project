@@ -1,48 +1,96 @@
 {% comment %} Role-aware navbar {% endcomment %}
+<style>
+  .dropdown {
+    position: relative;
+    display: inline-block;
+  }
+  
+  .dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: var(--color-bg);
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+    border-radius: 0.5rem;
+    margin-top: 0.25rem;
+  }
+  
+  .dropdown-content a {
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+    color: var(--color-text);
+    border-radius: 0.5rem;
+  }
+  
+  .dropdown-content a:hover {
+    background-color: var(--color-btn-alt);
+  }
+  
+  .dropdown:hover .dropdown-content {
+    display: block;
+  }
+</style>
+
 <nav class="navbar">
-	<div class="flex justify-between layout-content-container">
-		<a href="{% url 'home' %}" class="text-primary text-xl font-bold">TA Management</a>
-		<ul class="navbar-menu">
-			<li><a href="{% url 'home' %}" class="btn btn-alt text-muted">Home</a></li>
+    <div class="flex justify-between layout-content-container">
+        <a href="{% url 'home' %}" class="text-primary text-xl font-bold">TA Management</a>
+        <ul class="navbar-menu">
+            <li><a href="{% url 'home' %}" class="btn btn-alt text-muted">Home</a></li>
 
 
-			{% if user.is_authenticated %}
+            {% if user.is_authenticated %}
 
-			{% if user.role == user.Roles.TA %}
-			<li><a href="#" class="btn btn-alt">Log Duty</a></li>
-			<li><a href="#" class="btn btn-alt">My Logs</a></li>
-			<li><a href="#" class="btn btn-alt">Request Leave</a></li>
-			{% endif %}
+            {% if user.role == user.Roles.TA %}
+            <li><a href="#" class="btn btn-alt">Log Duty</a></li>
+            <li><a href="#" class="btn btn-alt">My Logs</a></li>
+            <li><a href="#" class="btn btn-alt">Request Leave</a></li>
+            {% endif %}
 
 
-				{% if user.role == user.Roles.INSTRUCTOR %}
-				<li><a href="#" class="btn btn-alt">Approve Logs</a></li>
-				<li><a href="#" class="btn btn-alt">Create Duties</a></li>
+	            {% if user.role == user.Roles.INSTRUCTOR %}
+	            <li><a href="#" class="btn btn-alt">Approve Logs</a></li>
+	            <li class="dropdown">
+                <a href="#" class="btn btn-alt">Manage Duties</a>
+                <div class="dropdown-content">
+                    <a href="{% url 'duties:list' %}">List Duties</a>
+                    <a href="{% url 'duties:create' %}">Create Duty</a>
+                </div>
+            </li>
+            <li class="dropdown">
+              <a href="#" class="btn btn-alt">TA Requests</a>
+              <div class="dropdown-content">
+                  <a href="{% url 'ta_request_cs_dept:list' %}">My Requests</a>
+                  <a href="{% url 'ta_request_cs_dept:create' %}">New Request</a>
+              </div>
+          </li>
+          
 				<li><a href="{% url 'duties:manage_exam_assignments' %}" class="btn btn-alt">Manage Proctoring</a></li>
 			    <li><a href="{% url 'duties:see_proctoring_duties' %}" class="btn btn-alt">Proctoring Duties</a></li>
-				{% endif %}
+	          {% endif %}
 
-				{% if user.role in user.Roles.admin_roles %}
-				<li><a href="{% url 'accounts:user_list' %}" class="btn btn-alt">Manage Users</a></li>
-				{% endif %}
+	            {% if user.role in user.Roles.admin_roles %}
+	            <li><a href="{% url 'accounts:user_list' %}" class="btn btn-alt">Manage Users</a></li>
+	            {% endif %}
 
 				{% if user.role != user.Roles.TA and user.role in user.Roles.admin_roles or user.is_staff %}
 				<li><a href="{% url 'logs:dashboard' %}" class="btn btn-alt">System Logs</a></li>
 				{% endif %}
 
-				{% if user.role == user.Roles.ADMIN or user.is_staff %}
-				<li><a href="{% url 'admin:index' %}" class="btn btn-alt">Admin Dashboard</a></li>
-				{% endif %}
+	            {% if user.role == user.Roles.ADMIN or user.is_staff %}
+	            <li><a href="{% url 'admin:index' %}" class="btn btn-alt">Admin Dashboard</a></li>
+	            {% endif %}
 
-				<li>
-					<form action="{% url 'accounts:logout' %}" method="post" style="display: inline">
-						{% csrf_token %}
-						<button type="submit" class="btn btn-alt">Logout</button>
-					</form>
-				</li>
-			{% else %}
-				<li><a href="{% url 'accounts:login' %}" class="btn btn-alt">Login</a></li>
-			{% endif %}
-		</ul>
-	</div>
+	            <li>
+	                <form action="{% url 'accounts:logout' %}" method="post" style="display: inline">
+	                    {% csrf_token %}
+	                    <button type="submit" class="btn btn-alt">Logout</button>
+	                </form>
+	            </li>
+            {% else %}
+	            <li><a href="{% url 'accounts:login' %}" class="btn btn-alt">Login</a></li>
+            {% endif %}
+        </ul>
+    </div>
 </nav>

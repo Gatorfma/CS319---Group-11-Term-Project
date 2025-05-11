@@ -1,0 +1,193 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+    .hidden {
+      display: none !important;
+    }
+    
+    /* Enhanced form styling */
+    .form-label {
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+      color: var(--color-text);
+      display: block;
+    }
+    
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    .form-field-wrapper {
+      margin-bottom: 1.5rem;
+    }
+    
+    .form-full-width {
+      grid-column: 1 / -1;
+    }
+</style>
+
+<div class="layout-content-container px-10 py-5">
+  <h2 class="text-primary mb-4">Create New Duty</h2>
+
+  <div class="card">
+    <div class="card-header">Duty Information</div>
+    <div class="card-body p-6">
+      <form method="post" id="duty-form">
+        {% csrf_token %}
+        
+        <div class="form-grid">
+            <div class="form-field-wrapper">
+                <label for="id_duty_type" class="form-label">Duty Type:</label>
+                <select id="id_duty_type" name="duty_type" class="form-select">
+                  <option value="">---------</option>
+                  <option value="lab">Lab</option>
+                  <option value="grading">Grading</option>
+                  <option value="recitation">Recitation</option>
+                  <option value="office">Office Hour</option>
+                  <option value="proctoring">Proctoring</option>
+                </select>
+            </div>
+          
+          <div class="form-field-wrapper">
+            <label for="id_offering" class="form-label">Offering:</label>
+            <select id="id_offering" name="offering" class="form-select">
+              <option value="">---------</option>
+              {% for offering in form.fields.offering.queryset %}
+                <option value="{{ offering.id }}">{{ offering }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        
+        <div class="form-grid">
+          <div class="form-field-wrapper">
+            <label for="id_date" class="form-label">Date:</label>
+            <input type="date" id="id_date" name="date" class="form-input">
+          </div>
+          
+          <div class="form-field-wrapper">
+            <label for="id_start_time" class="form-label">Start time:</label>
+            <input type="time" id="id_start_time" name="start_time" class="form-input">
+          </div>
+        </div>
+        
+        <div class="form-grid">
+          <div class="form-field-wrapper">
+            <label for="id_end_time" class="form-label">End time:</label>
+            <input type="time" id="id_end_time" name="end_time" class="form-input">
+          </div>
+          
+          <div class="form-field-wrapper">
+            <label for="id_duration_hours" class="form-label">Duration hours:</label>
+            <input type="number" id="id_duration_hours" name="duration_hours" min="1" class="form-input">
+          </div>
+        </div>
+        
+        <div class="form-grid">
+          <div class="form-field-wrapper form-full-width">
+            <label for="id_description" class="form-label">Description:</label>
+            <textarea id="id_description" name="description" class="form-textarea"></textarea>
+          </div>
+        </div>
+
+        <!-- Dynamic Fields -->
+        <div id="lab_fields" class="form-grid hidden">
+          <div class="form-field-wrapper">
+            <label for="id_lab_number" class="form-label">Lab Number:</label>
+            <input type="number" id="id_lab_number" name="lab_number" class="form-input">
+          </div>
+        </div>
+        
+        <div id="grading_fields" class="form-grid hidden">
+          <div class="form-field-wrapper">
+            <label for="id_grading_type" class="form-label">Grading Type:</label>
+            <input type="text" id="id_grading_type" name="grading_type" class="form-input">
+          </div>
+        </div>
+        
+        <div id="recitation_fields" class="form-grid hidden">
+          <div class="form-field-wrapper">
+            <label for="id_topic" class="form-label">Topic:</label>
+            <input type="text" id="id_topic" name="topic" class="form-input">
+          </div>
+        </div>
+        
+        <div id="office_fields" class="form-grid hidden">
+          <div class="form-field-wrapper">
+            <label for="id_location" class="form-label">Location:</label>
+            <input type="text" id="id_location" name="location" class="form-input">
+          </div>
+        </div>
+        
+        <div id="proctoring_fields" class="form-grid hidden">
+          <div class="form-field-wrapper">
+            <label for="id_exam" class="form-label">Exam:</label>
+            <select id="id_exam" name="exam" class="form-select">
+              <option value="">---------</option>
+              {% for exam in exams %}
+                <option value="{{ exam.id }}">{{ exam }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          
+          <div class="form-field-wrapper">
+            <label for="id_classroom" class="form-label">Classroom:</label>
+            <select id="id_classroom" name="classroom" class="form-select">
+              <option value="">---------</option>
+              {% for classroom in classrooms %}
+                <option value="{{ classroom.id }}">{{ classroom }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+
+        <div class="mt-6">
+          <button type="submit" class="btn btn-accent">Create Duty</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- JavaScript for Dynamic Form Fields -->
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const dutyTypeField = document.getElementById('id_duty_type');
+
+    const fieldGroups = {
+      lab: document.getElementById('lab_fields'),
+      grading: document.getElementById('grading_fields'),
+      recitation: document.getElementById('recitation_fields'),
+      office: document.getElementById('office_fields'),
+      proctoring: document.getElementById('proctoring_fields'),
+    };
+
+    function hideAllFields() {
+      Object.values(fieldGroups).forEach(group => {
+        if (group) group.classList.add('hidden');
+      });
+    }
+
+    function showRelevantFields() {
+        const selected = dutyTypeField.value;
+        hideAllFields();
+        console.log("Selected duty type:", selected); // Debug output
+        if (fieldGroups[selected]) {
+            console.log("Showing fields for:", selected); // Debug output
+            fieldGroups[selected].classList.remove('hidden');
+        }
+    }   
+
+    // Attach event listener
+    dutyTypeField.addEventListener('change', showRelevantFields);
+
+    // Trigger on load (for pre-filled form values)
+    showRelevantFields();
+  });
+</script>
+{% endblock %}

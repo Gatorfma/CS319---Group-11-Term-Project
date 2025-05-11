@@ -29,7 +29,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
-
+AUTH_USER_MODEL = "accounts.CustomUser"
 # Application definition
 
 INSTALLED_APPS = [
@@ -44,10 +44,11 @@ INSTALLED_APPS = [
     'duties',
     'logs',
     'notifications',
-    'ta_requests'
+    'ta_requests',
+    'ta_request_cs_dept',
 ]
 
-AUTH_USER_MODEL = "accounts.CustomUser"
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
