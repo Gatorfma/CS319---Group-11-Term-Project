@@ -4,7 +4,8 @@ from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
 
 # Import your models
-from duties.models import ProctoringDuty, SwapRequest, LeaveRequest
+from duties.models import ProctoringDuty 
+from ta_requests.models import SwapRequest, LeaveRequest
 from courses.models import Exam, Classroom, CourseOffering
 from accounts.models import TAProfile, CustomUser
 

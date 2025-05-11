@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+    .hidden {
+      display: none !important;
+    }
+    
+    .btn-container {
+      display: flex;
+      gap: 1rem;
+      white-space: nowrap;
+    }
+    
+    .table {
+      width: 100%;
+      table-layout: fixed;
+    }
+    
+    .table td, .table th {
+      padding: 0.75rem 1rem;
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+    
+    .layout-content-container {
+      max-width: 1200px !important;
+    }
+    
+    .date-col {
+      width: 15%;
+    }
+    
+    .time-col {
+      width: 20%;
+    }
+    
+    .duration-col {
+      width: 15%;
+    }
+    
+    .status-col {
+      width: 15%;
+    }
+    
+    .actions-col {
+      width: 25%;
+    }
+</style>
+
+<div class="layout-content-container px-10 py-5">
+  <h2 class="text-primary mb-4">Duty Management</h2>
+
+  <!-- Duty Lists -->
+  <div class="flex flex-col gap-8">
+    {% for duty_type, duties in duty_groups %}
+      <div class="card">
+        <div class="card-header">{{ duty_type }}</div>
+        <div class="card-body" style="overflow-x: auto;">
+          {% if duties %}
+            <table class="table">
+              <thead>
+                <tr>
+                  <th class="date-col">Date</th>
+                  <th class="time-col">Time</th>
+                  <th class="duration-col">Duration</th>
+                  <th class="status-col">Status</th>
+                  <th class="actions-col text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for duty in duties %}
+                  <tr>
+                    <td>{{ duty.date }}</td>
+                    <td>{{ duty.start_time }} - {{ duty.end_time }}</td>
+                    <td>{{ duty.duration_hours }} hrs</td>
+                    <td>{{ duty.get_status_display }}</td>
+                    <td class="text-right">
+                      <div class="btn-container justify-end">
+                        <a href="{% url 'duties:detail' duty.get_type_slug duty.id %}"
+                           class="btn btn-alt">Details</a>
+                        <a href="{% url 'duties:assign_tas' duty.get_type_slug duty.id %}"
+                           class="btn btn-accent">Assign TAs</a>
+                      </div>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          {% else %}
+            <div class="text-center py-6 text-muted">
+              <p>No {{ duty_type }} available.</p>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

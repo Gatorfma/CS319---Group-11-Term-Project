@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="layout-content-container px-10 py-5">
+  <h2 class="text-2xl font-bold mb-6">My Swap Requests</h2>
+
+  {% if requests %}
+  <div class="card mb-6">
+    <div class="card-body">
+      <table class="table text-sm">
+        <thead>
+          <tr class="text-muted text-xs uppercase">
+            <th>Your Duty</th>
+            <th>Swap With</th>
+            <th>Reason</th>
+            <th>Status</th>
+            <th>Requested At</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for req in requests %}
+          <tr class="border-b hover:bg-gray-50">
+            <!-- Your Duty -->
+            <td class="py-3">
+              {{ req.duty }}
+            </td>
+            <!-- Swap With (With) -->
+            <td class="py-3">
+              {% if req.to_ta %}
+                {{ req.to_ta.user.get_full_name }}
+              {% else %}
+                <span class="text-muted">—</span>
+              {% endif %}
+            </td>
+            <!-- Reason -->
+            <td class="py-3 text-justify">
+              {{ req.reason|truncatechars:50 }}
+            </td>
+            <!-- Status Badge -->
+            <td class="py-3">
+              <span class="inline-block text-xs px-3 py-1 rounded-full
+                {% if req.status == 'P' %}bg-gray-200 text-gray-800
+                {% elif req.status == 'A' %}bg-green-100 text-green-800
+                {% else %}bg-red-100 text-red-800{% endif %}">
+                {{ req.get_status_display }}
+              </span>
+            </td>
+            <!-- Requested At -->
+            <td class="py-3">
+              {{ req.requested_at|date:"M j, Y H:i" }}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      {% if is_paginated %}
+      <nav class="flex justify-center mt-4">
+        <ul class="flex gap-3">
+          {% if page_obj.has_previous %}
+          <li>
+            <a href="?page={{ page_obj.previous_page_number }}" class="text-primary text-sm">« Prev</a>
+          </li>
+          {% endif %}
+          <li class="text-muted text-sm">
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+          </li>
+          {% if page_obj.has_next %}
+          <li>
+            <a href="?page={{ page_obj.next_page_number }}" class="text-primary text-sm">Next »</a>
+          </li>
+          {% endif %}
+        </ul>
+      </nav>
+      {% endif %}
+    </div>
+  </div>
+  {% else %}
+    <p class="text-muted text-sm">You haven’t submitted any swap requests yet.</p>
+  {% endif %}
+
+  <div class="text-right">
+    <a href="{% url 'ta_requests:swap-request' %}" class="btn btn-accent">New Swap Request</a>
+  </div>
+</div>
+{% endblock %}

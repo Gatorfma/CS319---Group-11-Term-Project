@@ -8,11 +8,13 @@ urlpatterns = [
     path("accounts/", include("accounts.urls")),
     path("", TemplateView.as_view(template_name="home.html"), name="home"),
     path('logs/', include('logs.urls', namespace='logs')),
-     path(
+    path(
         "accounts/logout/",
         LogoutView.as_view(next_page="home"),
         name="logout",
         ),  
      path("duties/", include("duties.urls")),
      path("courses/", include("courses.urls")),
+     path("requests/", include("ta_requests.urls")),
+     path("ta-request_cs_dept/", include("ta_request_cs_dept.urls")),
 ]
