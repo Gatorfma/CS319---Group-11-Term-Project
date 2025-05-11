@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block title %}TA Requests{% endblock %}
+
+{% block content %}
+<div class="layout-content-container px-10">
+  <h1 class="py-5">TA Requests</h1>
+  
+  <div class="flex justify-between items-center py-3">
+    <h2>Your Course TA Requests</h2>
+    <a href="{% url 'ta_requests:create' %}" class="btn btn-accent">Create New Request</a>
+  </div>
+
+  {% if ta_requests %}
+    <div class="card">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Course</th>
+            <th>TA Loads</th>
+            <th>Graders</th>
+            <th>Last Updated</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for request in ta_requests %}
+            <tr>
+              <td>{{ request.course.course.code }} - {{ request.course.course.title }}</td>
+              <td>{{ request.min_ta_loads }} - {{ request.max_ta_loads }}</td>
+              <td>{{ request.graders_requested }}</td>
+              <td>{{ request.updated_at|date:"M d, Y" }}</td>
+              <td>
+                <a href="{% url 'ta_requests:update' request.id %}" class="btn btn-alt">Edit</a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="card">
+      <div class="card-body text-center">
+        <p>You haven't created any TA requests yet.</p>
+        <a href="{% url 'ta_requests:create' %}" class="btn btn-accent">Create Your First Request</a>
+      </div>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -242,6 +242,15 @@ class InstructorProfile(models.Model):
         Checks if instructor can approve leave requests
         """
         return self.is_active and self.is_faculty
+    
+    # Add this to the InstructorProfile class
+
+    # Add these fields to InstructorProfile
+    is_ta_coordinator = models.BooleanField(
+        default=False,
+        help_text="Whether this instructor is responsible for managing TA assignments"
+    )
+
 
 # Add to CustomUser class
 def get_instructor_profile(self):

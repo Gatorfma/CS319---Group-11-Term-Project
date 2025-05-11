@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="layout-content-container px-10 py-5">
+  <h2 class="text-primary mb-4">Duty Details</h2>
+
+  <div class="card mb-8">
+    <div class="card-header">Duty Information</div>
+    <div class="card-body">
+      <form method="post">
+        {% csrf_token %}
+        
+        <div class="form-grid gap-4 mb-6">
+          <div class="form-group">
+            {{ form.offering.label_tag }}
+            {{ form.offering }}
+          </div>
+          
+          <div class="form-group">
+            {{ form.date.label_tag }}
+            {{ form.date }}
+          </div>
+        </div>
+        
+        <div class="form-grid gap-4 mb-6">
+          <div class="form-group">
+            {{ form.start_time.label_tag }}
+            {{ form.start_time }}
+          </div>
+          
+          <div class="form-group">
+            {{ form.end_time.label_tag }}
+            {{ form.end_time }}
+          </div>
+        </div>
+
+        <div class="form-grid gap-4 mb-6">
+          <div class="form-group">
+            {{ form.duration_hours.label_tag }}
+            {{ form.duration_hours }}
+          </div>
+          
+          <div class="form-group col-span-2">
+            {{ form.description.label_tag }}
+            {{ form.description }}
+          </div>
+        </div>
+
+        {% if duty.get_type_slug == "lab" %}
+          <div class="form-grid gap-4 mb-6">
+            <div class="form-group">
+              {{ form.lab_number.label_tag }}
+              {{ form.lab_number }}
+            </div>
+          </div>
+        {% elif duty.get_type_slug == "grading" %}
+          <div class="form-grid gap-4 mb-6">
+            <div class="form-group">
+              {{ form.grading_type.label_tag }}
+              {{ form.grading_type }}
+            </div>
+          </div>
+        {% elif duty.get_type_slug == "recitation" %}
+          <div class="form-grid gap-4 mb-6">
+            <div class="form-group">
+              {{ form.topic.label_tag }}
+              {{ form.topic }}
+            </div>
+          </div>
+        {% elif duty.get_type_slug == "office" %}
+          <div class="form-grid gap-4 mb-6">
+            <div class="form-group">
+              {{ form.location.label_tag }}
+              {{ form.location }}
+            </div>
+          </div>
+        {% elif duty.get_type_slug == "proctoring" %}
+          <div class="form-grid gap-4 mb-6">
+            <div class="form-group">
+              {{ form.exam.label_tag }}
+              {{ form.exam }}
+            </div>
+            
+            <div class="form-group">
+              {{ form.classroom.label_tag }}
+              {{ form.classroom }}
+            </div>
+          </div>
+        {% endif %}
+
+        <div class="flex justify-end">
+          <button type="submit" class="btn btn-accent">Update Duty</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">Assigned Teaching Assistants</div>
+    <div class="card-body">
+      {% if duty.assigned_ta_list.all %}
+        <ul class="flex flex-col gap-3">
+          {% for ta in duty.assigned_ta_list.all %}
+            <li class="flex items-center gap-3 py-3 border-b">
+              <div class="size-10 flex items-center justify-center bg-btn-alt rounded-full text-center">
+                {{ ta.user.get_full_name|slice:":1" }}
+              </div>
+              <div>
+                <div class="font-bold">{{ ta.user.get_full_name }}</div>
+                <div class="text-muted">{{ ta.user.username }}</div>
+              </div>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <div class="text-center py-8 text-muted">
+          <p>No Teaching Assistants assigned to this duty yet.</p>
+        </div>
+      {% endif %}
+      
+      <div class="flex justify-center mt-6">
+        <a href="{% url 'duties:assign_tas' duty_type=duty.get_type_slug duty_id=duty.id %}" class="btn btn-accent">
+          Manage TA Assignments
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

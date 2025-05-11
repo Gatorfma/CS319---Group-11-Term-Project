@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib import messages
-from django.http import HttpResponseBadRequest
+from django.http import HttpResponseBadRequest, HttpResponseNotFound
 from django.shortcuts import get_object_or_404, redirect, render
 from accounts.models import TAProfile
 from datetime import timedelta
@@ -514,3 +514,184 @@ def delete_exam_assignments_view(request, exam_id):
 
     messages.success(request, "All assignments for this exam have been deleted.")
     return redirect('duties:manage_exam_assignments')
+
+# duties/views.py
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.utils.decorators import method_decorator
+from django.views import View
+from .models import LabDuty, GradingDuty, RecitationDuty, OfficeHourDuty, ProctoringDuty
+
+from datetime import date
+
+def is_instructor_or_staff(user):
+    return user.is_authenticated and (user.is_instructor() or user.is_secretary() or user.is_dept_chair() or user.is_dean())
+
+from django.views import View
+from django.shortcuts import render, redirect
+from django.http import HttpResponseBadRequest
+from .models import LabDuty, GradingDuty, RecitationDuty, OfficeHourDuty, ProctoringDuty
+from .forms import get_duty_form_class
+
+class DutyListView(View):
+    def get(self, request):
+        user = request.user
+        form_class = get_duty_form_class("lab")
+        form = form_class(user=user)
+        
+        # Get courses this instructor is related to
+        instructor_courses = []
+        if hasattr(user, 'get_instructor_profile') and user.get_instructor_profile():
+            instructor_profile = user.get_instructor_profile()
+            instructor_courses = instructor_profile.courses.all()
+        
+        # Get staff managed courses
+        staff_courses = []
+        if hasattr(user, 'get_staff_profile') and user.get_staff_profile():
+            staff_profile = user.get_staff_profile()
+            staff_courses = staff_profile.managed_courses.all()
+        
+        # Combine all relevant courses
+        all_relevant_courses = list(instructor_courses) + list(staff_courses)
+        
+        # Get all course offerings this instructor/staff is related to
+        from courses.models import CourseOffering
+        relevant_offerings = CourseOffering.objects.filter(course__in=all_relevant_courses)
+        
+        # Filter duties by both creation and course relevance
+        context = {
+            "duty_groups": [
+                ("Lab Duties", LabDuty.objects.filter(
+                    offering__in=relevant_offerings) | LabDuty.objects.filter(created_by=user)),
+                ("Grading Duties", GradingDuty.objects.filter(
+                    offering__in=relevant_offerings) | GradingDuty.objects.filter(created_by=user)),
+                ("Recitation Duties", RecitationDuty.objects.filter(
+                    offering__in=relevant_offerings) | RecitationDuty.objects.filter(created_by=user)),
+                ("Office Hour Duties", OfficeHourDuty.objects.filter(
+                    offering__in=relevant_offerings) | OfficeHourDuty.objects.filter(created_by=user)),
+                ("Proctoring Duties", ProctoringDuty.objects.filter(
+                    offering__in=relevant_offerings) | ProctoringDuty.objects.filter(created_by=user)),
+            ],
+            "form": form,
+        }
+        return render(request, "duties/duty_list.html", context)
+        
+
+
+
+from django.views import View
+from django.shortcuts import render, get_object_or_404, redirect
+from django.http import HttpResponseNotFound
+from .models import LabDuty, GradingDuty, RecitationDuty, OfficeHourDuty, ProctoringDuty
+from .forms import get_duty_form_class
+
+class DutyDetailView(View):
+    DUTY_MODEL_MAP = {
+        'lab': LabDuty,
+        'grading': GradingDuty,
+        'recitation': RecitationDuty,
+        'office': OfficeHourDuty,
+        'proctoring': ProctoringDuty,
+    }
+
+    def get_model(self, duty_type):
+        return self.DUTY_MODEL_MAP.get(duty_type)
+
+    def get(self, request, duty_type, duty_id):
+        model = self.get_model(duty_type)
+        if not model:
+            return HttpResponseNotFound("Invalid duty type")
+        duty = get_object_or_404(model, id=duty_id)
+        form_class = get_duty_form_class(duty_type)
+        form = form_class(instance=duty, user=request.user)
+        return render(request, "duties/duty_detail.html", {"duty": duty, "form": form})
+
+    def post(self, request, duty_type, duty_id):
+        model = self.get_model(duty_type)
+        if not model:
+            return HttpResponseNotFound("Invalid duty type")
+        duty = get_object_or_404(model, id=duty_id)
+        form_class = get_duty_form_class(duty_type)
+        form = form_class(request.POST, instance=duty, user=request.user)
+
+        if form.is_valid():
+            form.save()
+            return redirect("duties:detail", duty_type=duty_type, duty_id=duty.id)
+
+        return render(request, "duties/duty_detail.html", {"duty": duty, "form": form})
+    
+from django.views import View
+from django.shortcuts import render, get_object_or_404
+from .models import LabDuty, GradingDuty, RecitationDuty, OfficeHourDuty, ProctoringDuty
+from .forms import AssignTAsForm  
+
+class AssignTAsView(View):
+    MODEL_MAP = {
+        'lab': LabDuty,
+        'grading': GradingDuty,
+        'recitation': RecitationDuty,
+        'office': OfficeHourDuty,
+        'proctoring': ProctoringDuty,
+    }
+
+    def get(self, request, duty_type, duty_id):
+        model = self.MODEL_MAP.get(duty_type)
+        duty = get_object_or_404(model, id=duty_id)
+        form = AssignTAsForm(duty=duty)
+        return render(request, 'duties/assign_tas.html', {
+            'duty': duty,
+            'form': form,
+        })
+
+    def post(self, request, duty_type, duty_id):
+        model = self.MODEL_MAP.get(duty_type)
+        duty = get_object_or_404(model, id=duty_id)
+        form = AssignTAsForm(request.POST, duty=duty)
+        if form.is_valid():
+            form.save()
+            return redirect('duties:list')
+        return render(request, 'duties/assign_tas.html', {
+            'duty': duty,
+            'form': form,
+        })
+
+# Add this new view class
+class CreateDutyView(View):
+    def get(self, request):
+        user = request.user
+        form_class = get_duty_form_class("lab")
+        form = form_class(user=user)
+        
+        # Get querysets needed for dynamic fields
+        from courses.models import Exam, Classroom
+        
+        context = {
+            "form": form,
+            "exams": Exam.objects.all(),
+            "classrooms": Classroom.objects.all(),
+        }
+        return render(request, "duties/duty_create.html", context)
+    
+    def post(self, request):
+        duty_type = request.POST.get("duty_type")
+        form_class = get_duty_form_class(duty_type)
+        if not form_class:
+            return HttpResponseBadRequest("Invalid duty type")
+
+        form = form_class(request.POST, user=request.user)
+        if form.is_valid():
+            duty = form.save(commit=False)
+            duty.created_by = request.user
+            duty.save()
+            return redirect("duties:list")
+
+        # Get querysets needed for dynamic fields
+        from courses.models import Exam, Classroom
+        
+        # Re-render with form errors
+        context = {
+            "form": form,
+            "exams": Exam.objects.all(),
+            "classrooms": Classroom.objects.all(),
+        }
+        return render(request, "duties/duty_create.html", context)

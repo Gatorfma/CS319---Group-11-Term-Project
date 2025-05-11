@@ -1,6 +1,7 @@
 from django.urls import path
 from .views import auto_assign_proctors_view, assign_classrooms_view, delete_exam_assignments_view, edit_exam_assignment_view, manage_exam_assignments_view, manual_assign_proctors_view, select_exam_for_manual_assignment
-
+from .views import DutyListView, DutyDetailView, CreateDutyView
+from .views import AssignTAsView
 app_name = "duties"
 
 urlpatterns = [
@@ -11,4 +12,12 @@ urlpatterns = [
     path('manage-exam-assignments/', manage_exam_assignments_view, name='manage_exam_assignments'),
     path('edit-exam-assignment/<int:exam_id>/', edit_exam_assignment_view, name='edit_exam_assignment'),
     path('delete-exam-assignments/<int:exam_id>/', delete_exam_assignments_view, name='delete_exam_assignments'),
+     path("create/", CreateDutyView.as_view(), name="create"),
+    path("", DutyListView.as_view(), name="list"),
+    path("<str:duty_type>/<int:duty_id>/", DutyDetailView.as_view(), name="detail"),
+     path(
+        '<str:duty_type>/<int:duty_id>/assign/',
+        AssignTAsView.as_view(),
+        name='assign_tas'
+    ),
 ]
