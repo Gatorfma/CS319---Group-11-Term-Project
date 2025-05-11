@@ -11,6 +11,10 @@
                 <button type="submit">Assign</button>
 			</form>
 		</div>
+        {% load static %}
+            <a href="{% static 'assign_ta_sample_file.xlsx' %}" download class="btn btn-secondary mt-3">
+                Download Sample Excel File
+            </a>
 	</div>
 </div>
 {% if errors %}

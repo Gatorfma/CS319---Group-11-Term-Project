@@ -14,17 +14,11 @@
         <p style="color:red;">{{ error }}</p>
     {% endif %}
 		</div>
-	{% if assigned_classrooms %}
-    <h3>Assigned Students to Classrooms:</h3>
-    {% for classroom, students in assigned_classrooms.items %}
-        <h4>{{ classroom }}</h4>
-        <ul>
-            {% for student in students %}
-                <li>{{ student.surname }}, {{ student.name }} (ID: {{ student.id }})</li>
-            {% endfor %}
-        </ul>
-    {% endfor %}
-{% endif %}
+	{% load static %}
+        <a href="{% static 'student_list_sample_file.xlsx' %}" download class="btn btn-secondary mt-3">
+            Download Sample Excel File
+        </a>
+
 	</div>
 </div>
 {% endblock %}
