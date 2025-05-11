@@ -50,9 +50,9 @@ def logs_dashboard(request):
     page_number = request.GET.get('page', 1)
     page_obj = paginator.get_page(page_number)
     
-    # Get unique values for filters
-    model_names = Log.objects.values_list('model_name', flat=True).distinct()
-    usernames = Log.objects.exclude(user=None).values_list('user__username', flat=True).distinct()
+    # Get unique values for filters - Use set() to remove duplicates
+    model_names = sorted(set(Log.objects.values_list('model_name', flat=True)))
+    usernames = sorted(set(Log.objects.exclude(user=None).values_list('user__username', flat=True)))
     
     context = {
         'page_obj': page_obj,
