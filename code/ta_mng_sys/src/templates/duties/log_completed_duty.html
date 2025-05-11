@@ -41,17 +41,17 @@
             {% csrf_token %}
 
             <div class="form-group">
-              <label class="form-label" for="{{ form.offering.id_for_label }}">
-                {{ form.offering.label }}
-              </label>
-              {{ form.offering }}
-            </div>
-
-            <div class="form-group">
               <label class="form-label" for="{{ form.duty_type.id_for_label }}">
                 {{ form.duty_type.label }}
               </label>
               {{ form.duty_type }}
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="{{ form.offering.id_for_label }}">
+                {{ form.offering.label }}
+              </label>
+              {{ form.offering }}
             </div>
 
             <div class="form-group">
