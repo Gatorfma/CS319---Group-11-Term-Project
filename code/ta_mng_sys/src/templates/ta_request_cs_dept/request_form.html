@@ -37,10 +37,17 @@
   }
   
   .remove-row-btn {
-    background: none;
-    border: none;
-    color: #ff4d4d;
-    cursor: pointer;
+  background: var(--color-btn-danger);
+  border: none;
+  color: #ffffff;
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-md);
+  transition: background-color 0.3s;
+}
+
+  .remove-row-btn:hover {
+    background: var(--color-btn-danger-hover, #d32f2f);
   }
   
   .semester-info {
@@ -188,7 +195,7 @@
 </div>
 
 <script>
-  // TA selection templates and counters
+  // TA selection templates and counters (track the highest ID used for each type)
   let mustHaveTaCount = 0;
   let preferredTaCount = 0;
   let preferredGraderCount = 0;
@@ -205,11 +212,12 @@
   ];
   
   // Generic function to add a preference row
-  function addPreferenceRow(containerId, counterVar, namePrefix, taId = '', onRemove = null) {
+  function addPreferenceRow(containerId, counterVar, namePrefix, taId = '') {
+    // Get current counter value and increment it
     const counter = window[counterVar]++;
     const rowId = `${namePrefix.replace(/_/g, '-')}-row-${counter}`;
     const rowHtml = `
-      <div class="ta-selection" id="${rowId}">
+      <div class="ta-selection" id="${rowId}" data-row-order="${counter + 1}">
         <span>${counter + 1}.</span>
         <select name="${namePrefix}${counter + 1}" class="form-select">
           <option value="">Select a TA</option>
@@ -226,10 +234,6 @@
       </div>
     `;
     document.getElementById(containerId).insertAdjacentHTML('beforeend', rowHtml);
-    
-    if (onRemove) {
-      document.querySelector(`#${rowId} .remove-row-btn`).addEventListener('click', onRemove);
-    }
   }
   
   // Remove a preference row and renumber remaining rows
@@ -241,12 +245,16 @@
       // Renumber the remaining rows
       const container = document.getElementById(containerId);
       const rows = container.querySelectorAll('.ta-selection');
+      
       rows.forEach((row, index) => {
-        row.querySelector('span').textContent = `${index + 1}.`;
-        
+        const displayIndex = index + 1;
+        // Update the visible number
+        row.querySelector('span').textContent = `${displayIndex}.`;
+        // Set the data attribute for reference
+        row.setAttribute('data-row-order', displayIndex);
         // Update the select name to maintain sequential ordering
         const select = row.querySelector('select');
-        select.name = `${namePrefix}${index + 1}`;
+        select.name = `${namePrefix}${displayIndex}`;
       });
     }
   }
@@ -273,6 +281,13 @@
     document.getElementById('add-avoid-grader').addEventListener('click', function() {
       addPreferenceRow('avoid-graders-container', 'avoidGraderCount', 'avoid_grader_');
     });
+    
+    // Initialize counters based on existing preferences
+    {% if must_have_tas %}mustHaveTaCount = {{ must_have_tas|length }};{% endif %}
+    {% if preferred_tas %}preferredTaCount = {{ preferred_tas|length }};{% endif %}
+    {% if preferred_graders %}preferredGraderCount = {{ preferred_graders|length }};{% endif %}
+    {% if tas_to_avoid %}avoidTaCount = {{ tas_to_avoid|length }};{% endif %}
+    {% if graders_to_avoid %}avoidGraderCount = {{ graders_to_avoid|length }};{% endif %}
     
     // Load existing preferences if any
     {% if must_have_tas %}
@@ -314,6 +329,13 @@
     {% else %}
       addPreferenceRow('avoid-graders-container', 'avoidGraderCount', 'avoid_grader_');
     {% endif %}
+    
+    // Reset counters to prevent duplicate indices when adding new items
+    mustHaveTaCount = document.querySelectorAll('#must-have-tas-container .ta-selection').length;
+    preferredTaCount = document.querySelectorAll('#preferred-tas-container .ta-selection').length;
+    preferredGraderCount = document.querySelectorAll('#preferred-graders-container .ta-selection').length;
+    avoidTaCount = document.querySelectorAll('#avoid-tas-container .ta-selection').length;
+    avoidGraderCount = document.querySelectorAll('#avoid-graders-container .ta-selection').length;
   });
 </script>
 {% endblock %}

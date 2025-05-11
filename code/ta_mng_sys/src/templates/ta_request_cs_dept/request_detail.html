@@ -1,0 +1,207 @@
+{% extends 'base.html' %}
+
+{% block title %}TA Request Details{% endblock %}
+
+{% block content %}
+<div class="layout-content-container px-10 py-6">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-3xl font-bold text-primary">TA Request Details</h1>
+    <div class="flex gap-3">
+      {% if ta_request.semester.is_request_period_active and ta_request.instructor == request.user %}
+        <a href="{% url 'ta_request_cs_dept:update' ta_request.id %}" class="btn btn-primary">
+          <i class="fas fa-edit mr-2"></i> Edit Request
+        </a>
+      {% endif %}
+      <a href="{% url 'ta_request_cs_dept:list' %}" class="btn btn-alt">
+        <i class="fas fa-arrow-left mr-2"></i> Back to List
+      </a>
+    </div>
+  </div>
+
+  <!-- Basic Information Card -->
+  <div class="card mb-6 shadow-md hover:shadow-lg transition-shadow">
+    <div class="card-header bg-gray-50 p-4 border-b">
+      <h2 class="text-xl font-semibold text-gray-800">Request Information</h2>
+    </div>
+    <div class="card-body p-6">
+      <div class="grid md:grid-cols-2 gap-6">
+        <div>
+          <p class="mb-3">
+            <span class="font-medium text-gray-700">Course:</span>
+            <span class="ml-2 text-lg">{{ ta_request.course.department_code }}{{ ta_request.course.course_code }} - {{ ta_request.course.title }}</span>
+          </p>
+          <p class="mb-3">
+            <span class="font-medium text-gray-700">Semester:</span>
+            <span class="ml-2">{{ ta_request.semester.name }}</span>
+          </p>
+          <p class="mb-3">
+            <span class="font-medium text-gray-700">Instructor:</span>
+            <span class="ml-2">{{ ta_request.instructor.get_full_name }}</span>
+          </p>
+        </div>
+        <div>
+          <p class="mb-3">
+            <span class="font-medium text-gray-700">Date Submitted:</span>
+            <span class="ml-2">{{ ta_request.created_at|date:"F j, Y" }}</span>
+          </p>
+          <p class="mb-3">
+            <span class="font-medium text-gray-700">Last Updated:</span>
+            <span class="ml-2">{{ ta_request.updated_at|date:"F j, Y" }}</span>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Load Requirements Card -->
+  <div class="card mb-6 shadow-md hover:shadow-lg transition-shadow">
+    <div class="card-header bg-gray-50 p-4 border-b">
+      <h2 class="text-xl font-semibold text-gray-800">TA Load Requirements</h2>
+    </div>
+    <div class="card-body p-6">
+      <div class="flex flex-wrap gap-8">
+        <div class="flex items-center">
+          <div class="bg-blue-100 rounded-full p-4 mr-3">
+            <i class="fas fa-user-clock text-blue-600 text-xl"></i>
+          </div>
+          <div>
+            <p class="text-sm text-gray-600">Minimum TA Loads</p>
+            <p class="text-xl font-semibold">{{ ta_request.min_ta_loads }}</p>
+          </div>
+        </div>
+        <div class="flex items-center">
+          <div class="bg-green-100 rounded-full p-4 mr-3">
+            <i class="fas fa-user-plus text-green-600 text-xl"></i>
+          </div>
+          <div>
+            <p class="text-sm text-gray-600">Maximum TA Loads</p>
+            <p class="text-xl font-semibold">{{ ta_request.max_ta_loads }}</p>
+          </div>
+        </div>
+        <div class="flex items-center">
+          <div class="bg-purple-100 rounded-full p-4 mr-3">
+            <i class="fas fa-tasks text-purple-600 text-xl"></i>
+          </div>
+          <div>
+            <p class="text-sm text-gray-600">Graders Requested</p>
+            <p class="text-xl font-semibold">{{ ta_request.graders_requested }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TA Preferences -->
+  <div class="grid md:grid-cols-2 gap-6 mb-6">
+    <!-- Must-Have TAs -->
+    <div class="card shadow-md hover:shadow-lg transition-shadow">
+      <div class="card-header bg-red-50 p-4 border-b">
+        <h2 class="text-xl font-semibold text-gray-800">Must-Have TAs</h2>
+      </div>
+      <div class="card-body p-6">
+        {% if ta_request.must_have_tas.exists %}
+          <ol class="list-decimal pl-5 space-y-2">
+            {% for pref in ta_request.musthavatapreference_set.all %}
+              <li>{{ pref.ta.user.get_full_name }}</li>
+            {% endfor %}
+          </ol>
+          
+          <div class="mt-6 p-4 bg-gray-50 rounded-md">
+            <h4 class="font-medium mb-2">Justification:</h4>
+            <p>{{ ta_request.must_have_justification|linebreaks }}</p>
+          </div>
+        {% else %}
+          <p class="text-gray-500">No must-have TAs specified</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Preferred TAs -->
+    <div class="card shadow-md hover:shadow-lg transition-shadow">
+      <div class="card-header bg-blue-50 p-4 border-b">
+        <h2 class="text-xl font-semibold text-gray-800">Preferred TAs</h2>
+      </div>
+      <div class="card-body p-6">
+        {% if ta_request.preferred_tas.exists %}
+          <ol class="list-decimal pl-5 space-y-2">
+            {% for pref in ta_request.tapreference_set.all %}
+              <li>{{ pref.ta.user.get_full_name }}</li>
+            {% endfor %}
+          </ol>
+        {% else %}
+          <p class="text-gray-500">No preferred TAs specified</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="grid md:grid-cols-2 gap-6 mb-6">
+    <!-- Preferred Graders -->
+    <div class="card shadow-md hover:shadow-lg transition-shadow">
+      <div class="card-header bg-green-50 p-4 border-b">
+        <h2 class="text-xl font-semibold text-gray-800">Preferred Graders</h2>
+      </div>
+      <div class="card-body p-6">
+        {% if ta_request.preferred_graders.exists %}
+          <ol class="list-decimal pl-5 space-y-2">
+            {% for pref in ta_request.graderpreference_set.all %}
+              <li>{{ pref.ta.user.get_full_name }}</li>
+            {% endfor %}
+          </ol>
+        {% else %}
+          <p class="text-gray-500">No preferred graders specified</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- TAs to Avoid -->
+    <div class="card shadow-md hover:shadow-lg transition-shadow">
+      <div class="card-header bg-yellow-50 p-4 border-b">
+        <h2 class="text-xl font-semibold text-gray-800">TAs to Avoid</h2>
+      </div>
+      <div class="card-body p-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <h4 class="font-medium mb-2">As TAs:</h4>
+            {% if ta_request.tas_to_avoid.exists %}
+              <ol class="list-decimal pl-5 space-y-2">
+                {% for pref in ta_request.avoidtapreference_set.all %}
+                  <li>{{ pref.ta.user.get_full_name }}</li>
+                {% endfor %}
+              </ol>
+            {% else %}
+              <p class="text-gray-500">None specified</p>
+            {% endif %}
+          </div>
+          <div>
+            <h4 class="font-medium mb-2">As Graders:</h4>
+            {% if ta_request.graders_to_avoid.exists %}
+              <ol class="list-decimal pl-5 space-y-2">
+                {% for pref in ta_request.avoidgraderpreference_set.all %}
+                  <li>{{ pref.ta.user.get_full_name }}</li>
+                {% endfor %}
+              </ol>
+            {% else %}
+              <p class="text-gray-500">None specified</p>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- General Justification -->
+  <div class="card shadow-md hover:shadow-lg transition-shadow">
+    <div class="card-header bg-gray-50 p-4 border-b">
+      <h2 class="text-xl font-semibold text-gray-800">General Justification</h2>
+    </div>
+    <div class="card-body p-6">
+      {% if ta_request.general_justification %}
+        <p>{{ ta_request.general_justification|linebreaks }}</p>
+      {% else %}
+        <p class="text-gray-500">No general justification provided</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -385,7 +385,7 @@ def export_requests_csv(request):
     
     writer = csv.writer(response)
     writer.writerow([
-        'Instructor', 'Course Code', 'Course Name', 'Min TA Loads', 'Max TA Loads', 
+        'Instructor', 'Course Code', 'Course Title', 'Min TA Loads', 'Max TA Loads', 
         'Graders', 'Must-Have TAs', 'Preferred TAs', 'Preferred Graders',
         'TAs to Avoid', 'Graders to Avoid', 'Must-Have Justification', 'General Justification'
     ])
@@ -394,8 +394,8 @@ def export_requests_csv(request):
     ta_request_cs_dept = TARequest.objects.filter(semester=semester).select_related(
         'instructor', 'course'
     ).prefetch_related(
-        'must_have_tas__user', 'preferred_tas__user', 
-        'preferred_graders__user', 'tas_to_avoid__user', 'graders_to_avoid__user'
+        'must_have_tas', 'preferred_tas', 
+        'preferred_graders', 'tas_to_avoid', 'graders_to_avoid'
     )
     
     for req in ta_request_cs_dept:
@@ -408,7 +408,7 @@ def export_requests_csv(request):
         
         writer.writerow([
             req.instructor.get_full_name(),
-            req.course.code,
+            f"{req.course.department_code}{req.course.course_code}",
             req.course.title,
             req.min_ta_loads,
             req.max_ta_loads,
@@ -454,9 +454,8 @@ def export_requests_excel(request):
     ws = wb.active
     ws.title = "TA Requests"
     
-    # Write headers
     headers = [
-        'Instructor', 'Course Code', 'Course Name', 'Min TA Loads', 'Max TA Loads', 
+        'Instructor', 'Course Code', 'Course Title', 'Min TA Loads', 'Max TA Loads', 
         'Graders', 'Must-Have TAs', 'Preferred TAs', 'Preferred Graders',
         'TAs to Avoid', 'Graders to Avoid', 'Must-Have Justification', 'General Justification'
     ]
@@ -467,9 +466,10 @@ def export_requests_excel(request):
     ta_request_cs_dept = TARequest.objects.filter(semester=semester).select_related(
         'instructor', 'course'
     ).prefetch_related(
-        'must_have_tas__user', 'preferred_tas__user', 
-        'preferred_graders__user', 'tas_to_avoid__user', 'graders_to_avoid__user'
+        'must_have_tas', 'preferred_tas', 
+        'preferred_graders', 'tas_to_avoid', 'graders_to_avoid'
     )
+    
     
     # Write data
     for row_num, req in enumerate(ta_request_cs_dept, 2):
@@ -482,7 +482,7 @@ def export_requests_excel(request):
         
         row_data = [
             req.instructor.get_full_name(),
-            req.course.code,
+            f"{req.course.department_code}{req.course.course_code}",
             req.course.title,
             req.min_ta_loads,
             req.max_ta_loads,
@@ -517,13 +517,31 @@ def _get_tas_in_order(ta_request, preference_model):
     """
     Helper function to get TAs in preference order as formatted strings
     """
-    tas = preference_model.objects.filter(
+    # Use the correct relationship name based on the preference model
+    if preference_model == MustHaveTAPreference:
+        relation = 'must_have_tas'
+    elif preference_model == TAPreference:
+        relation = 'preferred_tas'
+    elif preference_model == GraderPreference:
+        relation = 'preferred_graders'
+    elif preference_model == AvoidTAPreference:
+        relation = 'tas_to_avoid'
+    elif preference_model == AvoidGraderPreference:
+        relation = 'graders_to_avoid'
+    else:
+        return []
+    
+    # Get the related manager and the through model
+    through_model = ta_request._meta.get_field(relation).remote_field.through
+    
+    # Query the through table directly
+    preferences = through_model.objects.filter(
         ta_request=ta_request
     ).order_by('preference_order').select_related('ta__user')
     
     return [
         f"{i+1}. {pref.ta.user.get_full_name() or pref.ta.user.username}"
-        for i, pref in enumerate(tas)
+        for i, pref in enumerate(preferences)
     ]
 
 

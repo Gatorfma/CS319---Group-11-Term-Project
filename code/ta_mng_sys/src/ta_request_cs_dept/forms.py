@@ -88,7 +88,7 @@ class TARequestForm(forms.ModelForm):
                 semester=self.semester
             ).exists():
                 raise forms.ValidationError(
-                    f"You have already submitted a request for {course.code} this semester. Please edit your existing request."
+                    f"You have already submitted a request for {course.department_code} {str(course.course_code)} this semester. Please edit your existing request."
                 )
         
         return cleaned_data

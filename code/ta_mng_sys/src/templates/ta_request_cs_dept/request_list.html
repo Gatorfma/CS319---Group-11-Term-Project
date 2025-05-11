@@ -26,7 +26,7 @@
         <tbody>
           {% for request in ta_request_cs_dept %}
             <tr>
-              <td>{{ request.course.course.code }} - {{ request.course.course.title }}</td>
+                <td>{{ request.course.department_code }} - {{ request.course.course_code }}</td>
               <td>{{ request.min_ta_loads }} - {{ request.max_ta_loads }}</td>
               <td>{{ request.graders_requested }}</td>
               <td>{{ request.updated_at|date:"M d, Y" }}</td>
