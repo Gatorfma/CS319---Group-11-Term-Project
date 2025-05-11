@@ -149,12 +149,15 @@ def instructor_ta_workload_view(request):
     # Ensure the user is an instructor
     if instructor.role != instructor.Roles.INSTRUCTOR:
         return render(request, 'accounts/login.html')
-
+    '''
     # Get course offerings where the user is one of the instructors
     course_offerings = CourseOffering.objects.filter(
         instructors=instructor
     ).prefetch_related('tas__user')
-
+    '''
+    instructor_profile = instructor.instructor_profile
+    course_offerings = instructor_profile.assigned_course_offerings.all().prefetch_related('tas')
+    
     context = {
         'course_offerings': course_offerings,
     }
