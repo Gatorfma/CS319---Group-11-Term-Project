@@ -1,4 +1,4 @@
-from django.contrib import messages  # ✔️ bu olacak
+from django.contrib import messages  
 
 import pandas as pd
 from django.shortcuts import redirect, render
@@ -6,17 +6,27 @@ from django.shortcuts import redirect, render
 from courses.models import Course, CourseOffering
 
 from accounts.models import CustomUser, InstructorProfile, Student, TAProfile
+from .forms import UploadExcelForm
+import openpyxl
+from django.http import HttpResponse
 
 # Create your views here.
 def import_data_view(request):
-    
-
     def parse_semester(semester_code):
         year = int(str(semester_code)[:4])
         season_code = str(semester_code)[-1]
         season_map = {'1': 'Fall', '2': 'Spring', '3': 'Summer'}
         season = season_map.get(season_code, 'Fall')
         return f"{season} {year}"
+
+    def safe_str(val):
+        return str(val).strip() if pd.notna(val) else ''
+
+    def safe_bool(val):
+        return bool(val) if pd.notna(val) else False
+
+    def safe_int(val, default=0):
+        return int(val) if pd.notna(val) else default
 
     if request.method == 'POST':
         import_type = request.POST.get("import_type")
@@ -38,9 +48,9 @@ def import_data_view(request):
                 })
 
                 for _, row in df.iterrows():
-                    department_code = row['department_code'].strip().upper()
-                    course_code = int(row['course_code'])
-                    title = row['title'].strip()
+                    department_code = safe_str(row['department_code']).upper()
+                    course_code = safe_int(row['course_code'])
+                    title = safe_str(row['title'])
 
                     Course.objects.get_or_create(
                         department_code=department_code,
@@ -51,11 +61,11 @@ def import_data_view(request):
             elif import_type == "faculty":
                 df = df.rename(columns={'department_code': 'department'})
                 for _, row in df.iterrows():
-                    department = row['department'].strip().upper()
-                    staff_id = str(int(row['staff_id']))
-                    first_name = row['first_name'].strip()
-                    last_name = row['last_name'].strip()
-                    email = row['email'].strip()
+                    department = safe_str(row['department']).upper()
+                    staff_id = safe_str(row['staff_id'])
+                    first_name = safe_str(row['first_name'])
+                    last_name = safe_str(row['last_name'])
+                    email = safe_str(row['email'])
 
                     user, created = CustomUser.objects.get_or_create(
                         employee_id=staff_id,
@@ -83,21 +93,21 @@ def import_data_view(request):
                     if not hasattr(user, 'instructor_profile'):
                         InstructorProfile.objects.create(
                             user=user,
-                            is_faculty=bool(row.get('is_faculty', True)),
-                            is_active=bool(row.get('is_active', True))
+                            is_faculty=safe_bool(row.get('is_faculty', True)),
+                            is_active=safe_bool(row.get('is_active', True))
                         )
                     else:
                         profile = user.instructor_profile
-                        profile.is_faculty = bool(row.get('is_faculty', True))
-                        profile.is_active = bool(row.get('is_active', True))
+                        profile.is_faculty = safe_bool(row.get('is_faculty', True))
+                        profile.is_active = safe_bool(row.get('is_active', True))
                         profile.save()
 
             elif import_type == "students":
                 df = df.rename(columns={'department_code': 'department', 'class': 'student_class'})
                 for _, row in df.iterrows():
-                    student_id = str(row['student_id']).strip()
-                    first_name = row['first_name'].strip()
-                    last_name = row['last_name'].strip()
+                    student_id = safe_str(row['student_id'])
+                    first_name = safe_str(row['first_name'])
+                    last_name = safe_str(row['last_name'])
 
                     student, created = Student.objects.get_or_create(
                         student_id=student_id,
@@ -113,11 +123,10 @@ def import_data_view(request):
                             student.last_name = last_name
                             student.save()
 
-                    if str(row.get('is_ta', '')).strip() == '1':
-                        department = row['department'].strip().upper()
-                        email = row['email'].strip()
-                        student_class = int(row['student_class'])
-
+                    if safe_str(row.get('is_ta')) == '1':
+                        department = safe_str(row['department']).upper()
+                        email = safe_str(row['email'])
+                        student_class = safe_int(row['student_class'])
                         ta_type = 'PHD' if student_class == 9 else 'GRAD'
 
                         user, created = CustomUser.objects.get_or_create(
@@ -141,35 +150,34 @@ def import_data_view(request):
                             user.role = CustomUser.Roles.TA
 
                         user.employee_id = student_id
-                        user.phone_number = row.get('phone_no', '').strip()
+                        user.phone_number = safe_str(row.get('phone_no'))
                         user.save()
 
                         if not hasattr(user, 'ta_profile'):
                             TAProfile.objects.create(
                                 user=user,
                                 ta_type=ta_type,
-                                is_active=bool(row.get('is_active', True)),
-                                proctor_type=int(row['proctor_type']) if pd.notna(row.get('proctor_type')) else 0,
-                                
+                                is_active=safe_bool(row.get('is_active', True)),
+                                proctor_type=safe_int(row.get('proctor_type'), 0)
                             )
                         else:
                             profile = user.ta_profile
                             profile.ta_type = ta_type
-                            profile.is_active = bool(row.get('is_active', True))
-                            profile.proctor_type = int(row['proctor_type']) if pd.notna(row.get('proctor_type')) else 0
+                            profile.is_active = safe_bool(row.get('is_active', True))
+                            profile.proctor_type = safe_int(row.get('proctor_type'), 0)
                             profile.save()
 
             elif import_type == "course_offerings":
                 df = df.rename(columns={'department_code': 'department'})
                 for _, row in df.iterrows():
-                    department = row['department'].strip().upper()
-                    course = Course.objects.filter(department_code=department, course_code=int(row['course_no'])).first()
+                    department = safe_str(row['department']).upper()
+                    course = Course.objects.filter(department_code=department, course_code=safe_int(row['course_no'])).first()
                     if not course:
                         messages.warning(request, f"Course not found: {department}{row['course_no']}")
                         continue
                     semester = parse_semester(row['semester'])
-                    section = int(row['section_no'])
-                    staff_id = str(int(row['staff_id']))
+                    section = safe_int(row['section_no'])
+                    staff_id = safe_str(row['staff_id'])
                     user, _ = CustomUser.objects.get_or_create(
                         employee_id=staff_id,
                         defaults={
@@ -182,35 +190,31 @@ def import_data_view(request):
                     )
                     user.set_password("defaultpass123")
                     user.save()
-                    
+
                     offering, _ = CourseOffering.objects.get_or_create(
                         course=course,
                         semester=semester,
                         section=section,
                         defaults={
-                            'max_capacity': 100,  
+                            'max_capacity': 100,
                             'enrolled_count': 0,
-                            
-                            
-                        } 
+                        }
                     )
                     offering.instructors.add(user)
                     if not hasattr(user, 'instructor_profile'):
                         InstructorProfile.objects.create(user=user)
 
-                    # Bu kısım her durumda çalışmalı, o yüzden dışarıda tutulmalı
                     if hasattr(user, 'instructor_profile'):
                         user.instructor_profile.assigned_course_offerings.add(offering)
-
 
             elif import_type == "enrollments":
                 df = df.rename(columns={'department_code': 'department'})
                 for _, row in df.iterrows():
-                    department = row['department'].strip().upper()
-                    student_id = str(row['student_id']).strip()
+                    department = safe_str(row['department']).upper()
+                    student_id = safe_str(row['student_id'])
                     semester = parse_semester(row['semester'])
-                    section = int(row['section_no'])
-                    course = Course.objects.filter(department_code=department, course_code=int(row['course_no'])).first()
+                    section = safe_int(row['section_no'])
+                    course = Course.objects.filter(department_code=department, course_code=safe_int(row['course_no'])).first()
                     if not course:
                         messages.warning(request, f"Course not found: {department}{row['course_no']}")
                         continue
@@ -243,12 +247,94 @@ def import_data_view(request):
 
         return redirect('courses:import_data')
 
-
     import_types = [
-    ("courses", "Courses"),
-    ("faculty", "Faculty"),
-    ("students", "Students"),
-    ("course_offerings", "Course Offerings"),
-    ("enrollments", "Enrollments"),
+        ("courses", "Courses"),
+        ("faculty", "Faculty"),
+        ("students", "Students"),
+        ("course_offerings", "Course Offerings"),
+        ("enrollments", "Enrollments"),
     ]
     return render(request, 'courses/import_data.html', {"import_types": import_types})
+
+def upload_student_excell(request):
+    data = []
+    classrooms = []
+    assigned_classrooms = {}
+    error = None
+
+    if request.method == 'POST':
+        form = UploadExcelForm(request.POST, request.FILES)
+
+        if form.is_valid():
+            excel_file = form.cleaned_data['excel_file']
+            classrooms = form.cleaned_data['classroom_selection']  # This is a queryset
+
+            if not excel_file.name.endswith('.xlsx'):
+                error = "Please upload a valid .xlsx file."
+            else:
+                try:
+                    wb = openpyxl.load_workbook(excel_file)
+                    sheet = wb.active
+
+                    for row in sheet.iter_rows(min_row=2, values_only=True):
+                        name, surname, student_id = row
+                        data.append({
+                            'name': name,
+                            'surname': surname,
+                            'id': student_id
+                        })
+
+                    data.sort(key=lambda x: x['surname'])
+
+                    assigned_classrooms = {cls: [] for cls in classrooms}
+                    num_classrooms = len(classrooms)
+                    students_per_classroom = len(data) // num_classrooms
+                    remainder = len(data) % num_classrooms
+
+                    start = 0
+                    for i, classroom in enumerate(classrooms):
+                        extra = 1 if i < remainder else 0  # Distribute remaining students fairly
+                        end = start + students_per_classroom + extra
+                        assigned_classrooms[classroom] = data[start:end]
+                        start = end
+                    
+                    wb = openpyxl.Workbook()
+                    ws = wb.active
+                    ws.title = "Student Assignments"
+
+                    row_num = 1
+                    for classroom, student_list in assigned_classrooms.items():
+                        ws.cell(row=row_num, column=1, value=f"Classroom: {classroom}")
+                        row_num += 1
+                        ws.cell(row=row_num, column=1, value="Name")
+                        ws.cell(row=row_num, column=2, value="Surname")
+                        ws.cell(row=row_num, column=3, value="ID")
+                        row_num += 1
+
+                        for student in student_list:
+                            ws.cell(row=row_num, column=1, value=student['name'])
+                            ws.cell(row=row_num, column=2, value=student['surname'])
+                            ws.cell(row=row_num, column=3, value=student['id'])
+                            row_num += 1
+
+                        row_num += 2  # space between classrooms
+
+                    # Prepare response
+                    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+                    response['Content-Disposition'] = 'attachment; filename=assigned_students.xlsx'
+
+                    # Save workbook to response
+                    wb.save(response)
+                    return response
+
+                except Exception as e:
+                    error = f"Failed to read Excel file: {str(e)}"
+    else:
+        form = UploadExcelForm()
+
+    return render(request, 'courses/upload_student_excell.html', {
+        'form': form,
+        'data': data,
+        'classrooms': classrooms,
+        'assigned_classrooms': assigned_classrooms,
+        'error': error})

@@ -1,6 +1,8 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from .models import CustomUser
+from accounts.models import TAProfile
+from courses.models import CourseOffering
 
 class CustomUserCreationForm(UserCreationForm):
     class Meta:
@@ -33,6 +35,17 @@ class CustomUserCreationForm(UserCreationForm):
         self.fields["password1"].widget.attrs.update({"class": "form-input"})
         self.fields["password2"].widget.attrs.update({"class": "form-input"})
 
+class AssignTAForm(forms.Form):
+    ta = forms.ModelChoiceField(queryset=TAProfile.objects.filter(is_active=True))
+    course_offerings = forms.ModelChoiceField(
+        queryset=CourseOffering.objects.all(),
+        label="Course Offering"
+    )
+
+class AssignTAFormExcell(forms.Form):
+    excell_file = forms.FileField(
+        label="Upload Excell File"
+    )
 # New form for editing users
 class CustomUserEditForm(forms.ModelForm):
     # Add TA-specific fields

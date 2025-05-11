@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="layout-content-container px-10 py-5">
+  <h2 class="text-2xl font-bold mb-6">Approve Duty Logs</h2>
+
+  <div class="card">
+    <div class="card-body">
+      {% if logs %}
+        <table class="table text-sm">
+          <thead>
+            <tr class="text-muted text-xs uppercase">
+              <th>TA Name</th>
+              <th>Date Logged</th>
+              <th>Duty</th>
+              <th>Hours</th>
+              <th>Description</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for log in logs %}
+            <tr class="border-b hover:bg-gray-50">
+              <td>{{ log.ta_profile.user.get_full_name|default:log.ta_profile.user.username }}</td>
+              <td>{{ log.date_logged|date:"M j, Y H:i" }}</td>
+              <td>{{ log.duty }}</td>
+              <td>{{ log.hours_spent }}</td>
+              <td class="text-justify">{{ log.description|default:"N/A" }}</td>
+              <td>
+                <form method="post" class="flex gap-2">
+                  {% csrf_token %}
+                  <input type="hidden" name="log_id" value="{{ log.id }}">
+                  <button type="submit"
+                          name="action" value="approve"
+                          class="btn btn-accent text-xs" class="btn btn-accent text-xs"
++         onclick="return confirm('Are you sure you want to approve this duty log?');">
+>
+                    Approve
+                  </button>
+                  <button type="submit"
+                          name="action" value="reject"
+                          class="btn btn-alt text-xs" class="btn btn-accent text-xs"
++         onclick="return confirm('Are you sure you want to approve this duty log?');">
+>
+                    Reject
+                  </button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p class="text-center text-muted py-6">
+          No pending duty logs.
+        </p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

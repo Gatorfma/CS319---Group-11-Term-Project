@@ -7,7 +7,8 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("accounts/", include("accounts.urls")),
     path("", TemplateView.as_view(template_name="home.html"), name="home"),
-     path(
+    path('logs/', include('logs.urls', namespace='logs')),
+    path(
         "accounts/logout/",
         LogoutView.as_view(next_page="home"),
         name="logout",
@@ -15,4 +16,7 @@ urlpatterns = [
      path("duties/", include("duties.urls")),
      path("courses/", include("courses.urls")),
      path("cs-dept-requests/", include("ta_request_cs_dept.urls")),
+     path("requests/", include("ta_requests.urls")),
+
+
 ]

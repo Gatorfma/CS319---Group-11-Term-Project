@@ -42,7 +42,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'duties',
+    'logs',
     'notifications',
+    'ta_requests',
     'ta_request_cs_dept',
 ]
 
@@ -55,6 +57,7 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    'logs.middleware.LoggingMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 

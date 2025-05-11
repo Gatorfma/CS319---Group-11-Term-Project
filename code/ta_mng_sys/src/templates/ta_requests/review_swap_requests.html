@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="layout-content-container px-10 py-5">
+  <h2 class="text-2xl font-bold mb-6">Review Duty Swap Requests</h2>
+
+  <div class="card">
+    <div class="card-body">
+      <table class="table text-sm">
+        <thead>
+          <tr class="text-muted text-xs uppercase">
+            <th>Requesting TA</th>
+            <th>Their Duty Details</th>
+            <th>Your Duty Details</th>
+            <th>Requested Swap Date</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for req in swap_requests %}
+          <tr class="align-top">
+            <td>{{ req.from_ta.user.get_full_name }}</td>
+            <td>{{ req.duty }}</td>
+            <td>{{ req.to_ta_duty }}</td> {# varsayılan: kendi duty'niz, gerekirse modelden çekilir #}
+            <td>{{ req.requested_at|date:"M j, Y" }}</td>
+            <td>
+              <div class="flex gap-2">
+                <form method="post" style="display: inline;">
+                  {% csrf_token %}
+                  <input type="hidden" name="swap_id" value="{{ req.id }}">
+                  <button type="submit" name="action" value="approve" class="btn btn-accent text-xs">Approve</button>
+                  <button type="submit" name="action" value="reject" class="btn btn-alt text-xs">Reject</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="5" class="text-center text-muted py-4">
+              No pending swap requests.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<script>
+  document.querySelectorAll('button[name="action"]').forEach(btn => {
+    btn.addEventListener('click', e => {
+      const msg = btn.value === 'approve'
+        ? 'Are you sure you want to approve this swap request?'
+        : 'Are you sure you want to reject this swap request?';
+      if (!confirm(msg)) e.preventDefault();
+    });
+  });
+</script>
+
+{% endblock %}

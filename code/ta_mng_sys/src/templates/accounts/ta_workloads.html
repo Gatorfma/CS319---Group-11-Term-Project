@@ -1,0 +1,28 @@
+{% extends "base.html" %} {% block title %}TA Workload Report{% endblock %} {% block content %}
+<div class="layout-content-container px-10 py-5">
+	<div class="card mx-auto" style="max-width: 800px">
+		<div class="card-header">TA Workload Report</div>
+		<div class="card-body">
+			{% for offering in course_offerings %}
+                <div style="margin-bottom: 2em; border-bottom: 1px solid #ccc; padding-bottom: 1em;">
+                <h3>{{ offering.course.department_code }}{{ offering.course.course_code }} – {{ offering.semester }} (Sec {{ offering.section }})</h3>
+
+                {% if offering.tas.all %}
+                    <ul>
+                    {% for ta in offering.tas.all %}
+                        <li>
+                        {{ ta.user.get_full_name|default:ta.user.username }} — Max Workload: {{ ta.max_workload }}, Current Workload: {{ ta.total_workload }}
+                        </li>
+                    {% endfor %}
+                    </ul>
+                {% else %}
+                    <p><em>No TAs assigned to this course offering.</em></p>
+                {% endif %}
+                </div>
+            {% empty %}
+                <p>You are not assigned to any course offerings.</p>
+            {% endfor %}
+		</div>
+	</div>
+</div>
+{% endblock %}

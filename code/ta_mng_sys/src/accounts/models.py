@@ -359,4 +359,3 @@ def create_or_update_user_profiles(sender, instance, created, **kwargs):
         CustomUser.Roles.DEPT_CHAIR
     ]:
         StaffProfile.objects.get_or_create(user=instance)
-

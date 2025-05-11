@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="layout-content-container px-10 py-5">
+  <h2 class="text-2xl font-bold mb-6">Leave of Absence Requests</h2>
+
+  <div class="card">
+    <div class="card-body">
+      <table class="table text-sm">
+        <thead>
+          <tr class="text-muted text-xs uppercase">
+            <th>Name</th>
+            <th>Department</th>
+            <th>Requested Dates</th>
+            <th>Reason for Leave</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for req in requests %}
+          <tr class="align-top">
+            <!-- TA Name -->
+            <td>{{ req.ta_profile.user.get_full_name|default:req.ta_profile.user.username }}</td>
+
+            <!-- Department -->
+            <td>{{ req.ta_profile.user.department }}</td>
+
+            <!-- Dates -->
+            <td>
+              {{ req.start_date|date:"M j" }} – {{ req.end_date|date:"M j" }}
+            </td>
+
+            <!-- Reason -->
+            <td class="text-justify">{{ req.reason|truncatechars:80 }}</td>
+
+            <!-- Status -->
+            <td>
+              <span class="
+                text-xs px-3 py-1 rounded-full
+                {% if req.status == 'P' %}
+                  bg-gray-200 text-gray-800
+                {% elif req.status == 'A' %}
+                  bg-green-100 text-green-800
+                {% elif req.status == 'R' %}
+                  bg-red-100 text-red-800
+                {% endif %}
+              ">
+                {{ req.get_status_display }}
+              </span>
+            </td>
+
+            <!-- Actions -->
+            <td>
+              {% if req.status == 'P' %}
+                <div class="flex gap-2">
+                  <a href="{% url 'ta_requests:leave-approve' req.pk %}" class="btn btn-accent text-xs">Approve</a>
+                  <a href="{% url 'ta_requests:leave-reject' req.pk %}" class="btn btn-alt text-xs">Reject</a>
+                </div>
+              {% else %}
+                <span class="text-muted text-xs">Processed</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6" class="text-center text-muted py-3">No leave requests found.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
