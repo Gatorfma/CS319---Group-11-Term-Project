@@ -11,24 +11,24 @@
         <!-- Step 1 -->
         <div class="form-group">
           <label class="form-label">{{ form.my_duty.label }}</label>
-          {{ form.my_duty }}
-        </div>
-
-        <!-- Step 1 Progress -->
-        <div class="progress-wrapper">
+          <div class="progress-wrapper">
           <div class="progress-bar" style="width: 33%;"></div>
+          </div>
+        
+          <div class="form-group">{{ form.my_duty }}</div>
         </div>
-
+       
         <!-- Step 2 -->
         <div class="form-group">
           <label class="form-label">{{ form.other_duty.label }}</label>
+                  <div class="progress-wrapper">
+          <div class="progress-bar" style="width: 66%;"></div>
+        </div>
+
           {{ form.other_duty }}
         </div>
 
         <!-- Step 2 Progress -->
-        <div class="progress-wrapper">
-          <div class="progress-bar" style="width: 66%;"></div>
-        </div>
 
         <!-- Reason -->
         <div class="form-group">
