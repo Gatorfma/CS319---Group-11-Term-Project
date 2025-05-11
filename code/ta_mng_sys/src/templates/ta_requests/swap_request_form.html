@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="layout-content-container px-10 py-5">
+  <h2 class="text-2xl font-bold mb-6">Create Duty Swap Request</h2>
+
+  <div class="card">
+    <div class="card-body">
+      <form method="post" id="swap-form" class="flex flex-col gap-6">
+        {% csrf_token %}
+
+        <!-- Step 1 -->
+        <div class="form-group">
+          <label class="form-label">{{ form.my_duty.label }}</label>
+          {{ form.my_duty }}
+        </div>
+
+        <!-- Step 1 Progress -->
+        <div class="progress-wrapper">
+          <div class="progress-bar" style="width: 33%;"></div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="form-group">
+          <label class="form-label">{{ form.other_duty.label }}</label>
+          {{ form.other_duty }}
+        </div>
+
+        <!-- Step 2 Progress -->
+        <div class="progress-wrapper">
+          <div class="progress-bar" style="width: 66%;"></div>
+        </div>
+
+        <!-- Reason -->
+        <div class="form-group">
+          <label class="form-label">{{ form.reason.label }}</label>
+          {{ form.reason }}
+          {% for err in form.reason.errors %}
+            <p class="text-red-600 text-sm">{{ err }}</p>
+          {% endfor %}
+        </div>
+
+        <!-- Submit -->
+        <div class="flex justify-end">
+          <button type="submit"
+                  class="btn btn-accent"
+                  onclick="return confirm('Are you sure you want to submit this swap request?')">
+            Send Request
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

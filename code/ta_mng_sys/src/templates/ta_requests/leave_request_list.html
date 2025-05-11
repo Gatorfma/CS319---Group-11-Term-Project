@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="layout-content-container px-10 py-5">
+  <h2 class="text-2xl font-bold mb-6">My Leave Requests</h2>
+
+  {% if requests %}
+  <div class="card">
+    <div class="card-body">
+      <table class="table text-sm">
+        <thead>
+          <tr class="text-muted text-xs uppercase">
+            <th>Start</th>
+            <th>End</th>
+            <th>Reason</th>
+            <th>Status</th>
+            <th>Submitted</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for req in requests %}
+          <tr>
+            <td>{{ req.start_date|date:"M j, Y" }}</td>
+            <td>{{ req.end_date|date:"M j, Y" }}</td>
+            <td class="text-justify">{{ req.reason|truncatechars:50 }}</td>
+            <td>
+              <span class="
+                text-xs px-3 py-1 rounded-full
+                {% if req.status == 'P' %}
+                  bg-gray-200 text-gray-800
+                {% elif req.status == 'A' %}
+                  bg-green-100 text-green-800
+                {% elif req.status == 'R' %}
+                  bg-red-100 text-red-800
+                {% endif %}
+              ">
+                {{ req.get_status_display }}
+              </span>
+            </td>
+            <td>{{ req.submitted_at|date:"Y-m-d H:i" }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      {% if is_paginated %}
+      <nav class="text-center mt-4">
+        <ul class="flex justify-center gap-3">
+          {% if page_obj.has_previous %}
+          <li><a href="?page={{ page_obj.previous_page_number }}" class="text-muted text-sm">« Prev</a></li>
+          {% endif %}
+          <li class="text-muted text-sm">
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+          </li>
+          {% if page_obj.has_next %}
+          <li><a href="?page={{ page_obj.next_page_number }}" class="text-muted text-sm">Next »</a></li>
+          {% endif %}
+        </ul>
+      </nav>
+      {% endif %}
+    </div>
+  </div>
+  {% else %}
+    <p class="text-muted text-sm">You haven’t submitted any leave requests yet.</p>
+  {% endif %}
+
+  <div class="mt-6 text-right">
+    <a href="{% url 'ta_requests:leave-request' %}" class="btn btn-accent">Submit New Leave Request</a>
+  </div>
+</div>
+{% endblock %}

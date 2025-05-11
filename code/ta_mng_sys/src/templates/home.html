@@ -27,7 +27,7 @@
 						<div class="card-body">
 							<p>Create and view your duty logs.</p>
 							<div class="mt-3">
-								<a href="#" class="btn btn-sm btn-primary">Log Duty</a>
+								<a href="{% url 'duties:log-completed-duty' %}" class="btn btn-sm btn-primary">Log Duty</a>
 								<a href="#" class="btn btn-sm">View My Logs</a>
 							</div>
 						</div>
@@ -37,7 +37,18 @@
 						<div class="card-body">
 							<p>Request leave or check status of requests.</p>
 							<div class="mt-3">
-								<a href="#" class="btn btn-sm btn-accent">Request Leave</a>
+								<a href="{% url 'ta_requests:leave-request' %}" class="btn btn-sm btn-accent">Request Leave</a>
+								<a href="{% url 'ta_requests:leave-list' %}" class="btn btn-sm btn-accent">Requested Leaves</a>
+							</div>
+						</div>
+					</div>
+					<div class="card">
+						<div class="card-header bg-accent text-white">Swap Requests</div>
+						<div class="card-body">
+							<p>Swap your assigned proctoring duty with another ta's. </p>
+							<div class="mt-3">
+								<a href="{% url 'ta_requests:swap-request' %}" class="btn btn-sm btn-accent">Request Swap</a>
+								<a href="{% url 'ta_requests:swap-list' %}" class="btn btn-sm btn-accent">Requested Swaps</a>
 							</div>
 						</div>
 					</div>

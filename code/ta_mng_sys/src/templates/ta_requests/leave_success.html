@@ -1,0 +1,12 @@
+{% extends 'base.html' %} {% block content %}
+<div class="container">
+  <h2>Request Submitted</h2>
+  <p>
+    Your leave request has been submitted successfully and is now pending
+    approval.
+  </p>
+  <a href="{% url 'ta_requests:leave-request' %}" class="btn btn-secondary">
+    Submit Another
+  </a>
+</div>
+{% endblock %}
