@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import auto_assign_proctors_view, assign_classrooms_view, delete_exam_assignments_view, edit_exam_assignment_view, manage_exam_assignments_view, manual_assign_proctors_view, select_exam_for_manual_assignment
+from .views import auto_assign_proctors_view, assign_classrooms_view, delete_exam_assignments_view, edit_exam_assignment_view, get_exams_by_course, get_proctoring_duties, manage_exam_assignments_view, manual_assign_proctors_view, see_proctoring_duties_view, select_exam_for_manual_assignment
 
 app_name = "duties"
 
@@ -11,4 +11,9 @@ urlpatterns = [
     path('manage-exam-assignments/', manage_exam_assignments_view, name='manage_exam_assignments'),
     path('edit-exam-assignment/<int:exam_id>/', edit_exam_assignment_view, name='edit_exam_assignment'),
     path('delete-exam-assignments/<int:exam_id>/', delete_exam_assignments_view, name='delete_exam_assignments'),
+    path('get-exams-by-course/', get_exams_by_course, name='get_exams_by_course'),
+    path('get-proctoring-duties/', get_proctoring_duties, name='get_proctoring_duties'),
+    path('see-proctoring-duties/', see_proctoring_duties_view, name='see_proctoring_duties'),
+
+
 ]

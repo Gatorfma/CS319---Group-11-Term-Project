@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}See Proctoring Duties{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2>See Proctoring Duties</h2>
+
+  <form method="get" class="mb-4">
+    <label for="courseSelect">Select a course:</label>
+    <select name="course" id="courseSelect" class="form-select" onchange="this.form.submit()">
+      <option value="">-- Choose a course --</option>
+      {% for course in courses %}
+        <option value="{{ course.id }}" {% if course.id|stringformat:"s" == selected_course_id %}selected{% endif %}>
+          {{ course }}
+        </option>
+      {% endfor %}
+    </select>
+  </form>
+
+  {% if duties %}
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th>TA</th>
+          <th>Exam Date</th>
+          <th>Time</th>
+          <th>Classroom</th>
+          <th>Course</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for duty in duties %}
+          <tr>
+            <td>{{ duty.assigned_ta.user.get_full_name }}</td>
+            <td>{{ duty.exam.date }}</td>
+            <td>{{ duty.exam.start_time|time:"H:i" }} - {{ duty.exam.end_time|time:"H:i" }}</td>
+            <td>{{ duty.classroom }}</td>
+            <td>{{ duty.course }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% elif selected_course_id %}
+    <p>No proctoring duties found for this course.</p>
+  {% endif %}
+</div>
+{% endblock %}

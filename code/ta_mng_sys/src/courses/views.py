@@ -1,4 +1,4 @@
-from django.contrib import messages  # ✔️ bu olacak
+from django.contrib import messages  
 
 import pandas as pd
 from django.shortcuts import redirect, render
