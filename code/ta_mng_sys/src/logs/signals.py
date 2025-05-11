@@ -197,13 +197,13 @@ def log_swap_request(sender, instance, created, **kwargs):
                 object_id=instance.id
             )
 
-# Leave requests
 @receiver(post_save, sender=LeaveRequest)
 def log_leave_request(sender, instance, created, **kwargs):
     """Log when leave requests are created or updated"""
     if created:
+        current_user = get_current_user()
         log_action(
-            user=instance.ta.user,
+            user=current_user,
             action=f"Created leave request for {instance.start_date} to {instance.end_date}",
             model_name="LeaveRequest",
             object_id=instance.id
