@@ -157,7 +157,7 @@ class TARequest(models.Model):
         unique_together = ['instructor', 'course', 'semester']
         
     def __str__(self):
-        return f"{self.course.code} - {self.semester.name} - {self.instructor.get_full_name()}"
+        return f"{self.course.department_code} {str(self.course.course_code)} - {self.semester.name} - {self.instructor.get_full_name()}"
 
 
 # Base Preference Model to inherit from

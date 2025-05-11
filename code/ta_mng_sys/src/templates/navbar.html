@@ -63,8 +63,14 @@
               <div class="dropdown-content">
                   <a href="{% url 'ta_request_cs_dept:list' %}">My Requests</a>
                   <a href="{% url 'ta_request_cs_dept:create' %}">New Request</a>
+                  {% if user.instructor_profile.is_ta_coordinator %}
+                  <a href="{% url 'ta_request_cs_dept:coordinator_dashboard' %}" class="nav-link coordinator">
+                    Coordinator Dashboard
+                  </a>
+                  {% endif %}
               </div>
           </li>
+              
           
           {% endif %}
 
