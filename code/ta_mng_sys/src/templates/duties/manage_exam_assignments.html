@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Manage Exam Assignments{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2>Manage Exam Assignments</h2>
+  <table class="table table-striped mt-3">
+    <thead>
+      <tr>
+        <th>Course</th>
+        <th>Date</th>
+        <th>Time</th>
+        <th>Duration</th>
+        <th>TA Needed</th>
+        <th>Assigned TAs</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in exam_data %}
+        <tr>
+          <td>{{ item.exam.course }}</td>
+          <td>{{ item.exam.date }}</td>
+          <td>{{ item.exam.start_time }} - {{ item.exam.end_time }}</td>
+          <td>{{ item.exam.duration }}</td>
+          <td>{{ item.exam.num_proctors_required }}</td>
+          <td>{{ item.assigned_count }}</td>
+          <td>
+            {% if item.status == "Assigned" %}
+              <span class="badge bg-success">Assigned</span>
+            {% else %}
+              <span class="badge bg-danger">Unassigned</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if item.status == "Assigned" %}
+              <a href="{% url 'duties:edit_exam_assignment' item.exam.id %}" class="btn btn-sm btn-primary">Edit</a>
+              <a href="{% url 'duties:delete_exam_assignments' item.exam.id %}" class="btn btn-sm btn-danger">Delete</a>
+            {% else %}
+              <a href="{% url 'duties:manual_assign_proctors' item.exam.id %}" class="btn btn-sm btn-outline-primary">Assign Manually</a>
+              <a href="{% url 'duties:auto_assign_proctors' %}?exam_id={{ item.exam.id }}" class="btn btn-sm btn-outline-success">Assign Automatically</a>
+            {% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

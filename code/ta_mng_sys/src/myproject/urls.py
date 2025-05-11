@@ -11,6 +11,7 @@ urlpatterns = [
         "accounts/logout/",
         LogoutView.as_view(next_page="home"),
         name="logout",
-        ),
-    path("courses/", include("courses.urls")),
+        ),  
+     path("duties/", include("duties.urls")),
+     path("courses/", include("courses.urls")),
 ]

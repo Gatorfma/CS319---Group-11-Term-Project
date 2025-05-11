@@ -46,3 +46,56 @@ class AssignTAFormExcell(forms.Form):
     excell_file = forms.FileField(
         label="Upload Excell File"
     )
+# New form for editing users
+class CustomUserEditForm(forms.ModelForm):
+    # Add TA-specific fields
+    max_workload = forms.DecimalField(
+        max_digits=6, 
+        decimal_places=2, 
+        required=False,
+        widget=forms.NumberInput(attrs={"class": "form-input", "step": "0.5"})
+    )
+    max_absent_days = forms.IntegerField(
+        required=False,
+        widget=forms.NumberInput(attrs={"class": "form-input"})
+    )
+    
+    class Meta:
+        model = CustomUser
+        fields = [
+            "username",
+            "email",
+            "first_name",
+            "last_name",
+            "role",
+            "employee_id",
+            "department",
+            "phone_number",
+            "is_active",
+            "is_staff",
+        ]
+        widgets = {
+            "username":     forms.TextInput(attrs={"class": "form-input"}),
+            "email":        forms.EmailInput(attrs={"class": "form-input"}),
+            "first_name":   forms.TextInput(attrs={"class": "form-input"}),
+            "last_name":    forms.TextInput(attrs={"class": "form-input"}),
+            "role":         forms.Select(attrs={"class": "form-select"}),
+            "employee_id":  forms.TextInput(attrs={"class": "form-input"}),
+            "department":   forms.TextInput(attrs={"class": "form-input"}),
+            "phone_number": forms.TextInput(attrs={"class": "form-input"}),
+            "is_active":    forms.CheckboxInput(attrs={"class": "form-checkbox"}),
+            "is_staff":     forms.CheckboxInput(attrs={"class": "form-checkbox"}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        # If this is an existing TA user, populate the TA-specific fields
+        if self.instance and self.instance.pk and self.instance.role == CustomUser.Roles.TA:
+            try:
+                ta_profile = self.instance.ta_profile
+                self.fields['max_workload'].initial = ta_profile.max_workload
+                self.fields['max_absent_days'].initial = ta_profile.max_absent_days
+            except Exception:
+                # Handle the case where the TA profile might not exist yet
+                pass

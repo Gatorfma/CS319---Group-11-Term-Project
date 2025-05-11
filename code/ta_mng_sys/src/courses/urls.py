@@ -1,8 +1,8 @@
 from django.urls import path
-from . import views
+from .views import import_data_view
 
-app_name = "accounts"
+app_name = "courses"
 
 urlpatterns = [
-    path("upload_student_excell/",  views.upload_student_excell, name="upload_student_excell"),
+    path('import-data/', import_data_view, name='import_data'),
 ]

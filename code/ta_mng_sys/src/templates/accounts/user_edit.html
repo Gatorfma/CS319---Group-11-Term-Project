@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+
+{% block title %}Edit User{% endblock %}
+
+{% block content %}
+<div class="layout-content-container px-10 py-5">
+    <div class="card mx-auto" style="max-width: 640px">
+        <div class="card-header">
+            <h2 class="text-primary">Edit User</h2>
+        </div>
+
+        <div class="card-body">
+            <form method="post" class="space-y-4">
+                {% csrf_token %}
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="form-group">
+                        <label class="form-label">Username</label>
+                        {{ form.username }}
+                        {% if form.username.errors %}
+                        <div class="text-danger">{{ form.username.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        {{ form.email }}
+                        {% if form.email.errors %}
+                        <div class="text-danger">{{ form.email.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="form-group">
+                        <label class="form-label">First Name</label>
+                        {{ form.first_name }}
+                        {% if form.first_name.errors %}
+                        <div class="text-danger">{{ form.first_name.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Last Name</label>
+                        {{ form.last_name }}
+                        {% if form.last_name.errors %}
+                        <div class="text-danger">{{ form.last_name.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="form-group">
+                        <label class="form-label">Role</label>
+                        {{ form.role }}
+                        {% if form.role.errors %}
+                        <div class="text-danger">{{ form.role.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Employee ID</label>
+                        {{ form.employee_id }}
+                        {% if form.employee_id.errors %}
+                        <div class="text-danger">{{ form.employee_id.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="form-group">
+                        <label class="form-label">Department</label>
+                        {{ form.department }}
+                        {% if form.department.errors %}
+                        <div class="text-danger">{{ form.department.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Phone Number</label>
+                        {{ form.phone_number }}
+                        {% if form.phone_number.errors %}
+                        <div class="text-danger">{{ form.phone_number.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- TA-Specific Fields Section - only shown when role is TA -->
+                <div id="ta-specific-fields" class="border-t border-gray-200 pt-4 mt-4" style="display: none;">
+                    <h3 class="text-primary mb-3">TA-Specific Details</h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="form-group">
+                            <label class="form-label">Max Workload (hours)</label>
+                            {{ form.max_workload }}
+                            <small class="text-muted">Use -1 for unlimited</small>
+                            {% if form.max_workload.errors %}
+                            <div class="text-danger">{{ form.max_workload.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Max Absent Days</label>
+                            {{ form.max_absent_days }}
+                            <small class="text-muted">Use -1 for unlimited</small>
+                            {% if form.max_absent_days.errors %}
+                            <div class="text-danger">{{ form.max_absent_days.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="form-group">
+                        <label class="form-label flex items-center">
+                            {{ form.is_active }}
+                            <span class="ml-2">Is Active</span>
+                        </label>
+                        {% if form.is_active.errors %}
+                        <div class="text-danger">{{ form.is_active.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label flex items-center">
+                            {{ form.is_staff }}
+                            <span class="ml-2">Is Staff (Can access admin site)</span>
+                        </label>
+                        {% if form.is_staff.errors %}
+                        <div class="text-danger">{{ form.is_staff.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="flex justify-between mt-6">
+                    <a href="{% url 'accounts:user_list' %}" class="btn btn-light">Cancel</a>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Script to toggle TA-specific fields -->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const roleSelect = document.getElementById('id_role');
+        const taSpecificFields = document.getElementById('ta-specific-fields');
+
+        // Function to toggle TA-specific fields
+        function toggleTAFields() {
+            if (roleSelect.value === 'TA') {
+                taSpecificFields.style.display = 'block';
+            } else {
+                taSpecificFields.style.display = 'none';
+            }
+        }
+
+        // Initial check
+        toggleTAFields();
+
+        // Listen for changes
+        roleSelect.addEventListener('change', toggleTAFields);
+    });
+</script>
+{% endblock %}

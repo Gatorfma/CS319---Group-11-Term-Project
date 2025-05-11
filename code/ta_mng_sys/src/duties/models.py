@@ -1,5 +1,5 @@
 from django.db import models
-from courses.models import CourseOffering, Exam
+from courses.models import Classroom, Course, CourseOffering, Exam
 from accounts.models import TAProfile, CustomUser
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
@@ -16,7 +16,10 @@ class Duty(models.Model):
         CourseOffering,
         on_delete=models.CASCADE,
         related_name='%(class)sduties',
-        help_text='Course offering this duty belongs to'
+        help_text='Course offering this duty belongs to',
+        null=True,       
+        blank=True,
+        default=None
     )
     date = models.DateField()
     start_time = models.TimeField()
@@ -96,6 +99,21 @@ class ProctoringDuty(Duty):
         related_name='proctoring_duties',
         help_text='Exam this proctoring duty is for'
     )
+    classroom = models.ForeignKey(
+        Classroom,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='proctoring_duties',
+        help_text='Classroom where this TA will proctor the exam'
+    )
+    course = models.ForeignKey(
+        Course,
+        on_delete=models.CASCADE,
+        related_name='proctoring_duties',
+        help_text='Course for this duty'
+    )
+
 
 class SwapRequest(models.Model):
     class Status(models.TextChoices):
