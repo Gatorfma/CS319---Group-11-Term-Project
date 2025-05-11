@@ -18,6 +18,8 @@
 				{% if user.role == user.Roles.INSTRUCTOR %}
 				<li><a href="#" class="btn btn-alt">Approve Logs</a></li>
 				<li><a href="#" class="btn btn-alt">Create Duties</a></li>
+				<li><a href="{% url 'duties:manage_exam_assignments' %}" class="btn btn-alt">Manage Proctoring</a></li>
+			    <li><a href="{% url 'duties:see_proctoring_duties' %}" class="btn btn-alt">Proctoring Duties</a></li>
 				{% endif %}
 
 				{% if user.role in user.Roles.admin_roles %}

@@ -38,14 +38,42 @@
             {% if item.status == "Assigned" %}
               <a href="{% url 'duties:edit_exam_assignment' item.exam.id %}" class="btn btn-sm btn-primary">Edit</a>
               <a href="{% url 'duties:delete_exam_assignments' item.exam.id %}" class="btn btn-sm btn-danger">Delete</a>
+              <a href="javascript:void(0);" onclick="toggleTADetails({{ item.exam.id }})" class="btn btn-sm btn-secondary">Show Proctors</a>
+
             {% else %}
               <a href="{% url 'duties:manual_assign_proctors' item.exam.id %}" class="btn btn-sm btn-outline-primary">Assign Manually</a>
               <a href="{% url 'duties:auto_assign_proctors' %}?exam_id={{ item.exam.id }}" class="btn btn-sm btn-outline-success">Assign Automatically</a>
             {% endif %}
           </td>
         </tr>
+
+        {% if item.assigned_count > 0 %}
+        <tr id="exam-{{ item.exam.id }}" style="display: none;">
+          <td colspan="8" class="bg-light">
+            <strong>Assigned Proctors:</strong>
+            <ul class="mb-0">
+              {% for duty in item.duties %}
+                <li>
+                  {{ duty.assigned_ta.user.get_full_name }} –
+                  {{ duty.classroom }} –
+                  {{ duty.start_time|time:"H:i" }} - {{ duty.end_time|time:"H:i" }}
+                </li>
+              {% endfor %}
+            </ul>
+          </td>
+        </tr>
+        {% endif %}
       {% endfor %}
     </tbody>
   </table>
 </div>
+
+<script>
+  function toggleTADetails(examId) {
+    const row = document.getElementById(`exam-${examId}`);
+    if (row) {
+      row.style.display = row.style.display === 'none' ? 'table-row' : 'none';
+    }
+  }
+</script>
 {% endblock %}

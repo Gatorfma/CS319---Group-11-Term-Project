@@ -1,10 +1,10 @@
 from django import forms
 from django.contrib import messages
-from django.http import HttpResponseBadRequest
+from django.http import HttpResponseBadRequest, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from accounts.models import TAProfile
 from datetime import timedelta
-from courses.models import Classroom, Exam
+from courses.models import Classroom, Course, Exam
 from duties.models import ProctoringDuty
 from duties.forms import AutoProctoringAssignmentForm
 from decimal import Decimal
@@ -121,8 +121,8 @@ def assign_classrooms_view(request, exam_id):
             )
 
             exam.assigned_tas.add(ta)
-            ta.total_workload += Decimal(exam.duration.total_seconds()) / Decimal('3600')
-
+            
+            
             ta.save()
 
         return redirect('duties:manage_exam_assignments')
@@ -145,7 +145,7 @@ def perform_auto_assignment(exam, num_proctors, override_msphd=False, override_p
     start = exam.start_time
     end = exam.end_time
     duration_hours = exam.duration.total_seconds() / 3600.0
-    offering = exam.course  # Tek bir course var
+    offering = exam.course  
 
     all_tas = TAProfile.objects.filter(is_active=True, is_assignable=True).select_related('user')
 
@@ -163,10 +163,9 @@ def perform_auto_assignment(exam, num_proctors, override_msphd=False, override_p
             continue
 
         # 3. Zaman çakışan başka exam var mı?
-        # TA'nın kayıtlı olduğu derslerin course objelerini topla
         enrolled_courses = ta.enrolled_course_offerings.values_list('course', flat=True)
 
-        # Aynı gün sınavı olan ve bu derslere ait exam'leri bul
+        
         enrolled_exams = Exam.objects.filter(
             course__in=enrolled_courses,
             date=exam_date
@@ -521,7 +520,7 @@ def edit_exam_assignment_view(request, exam_id):
                     'ta_display_list': ta_display_list
                 })
             
-            # Store selected TAs and previously assigned classrooms in session
+            
             request.session['selected_ta_ids'] = [ta.id for ta in selected_tas]
             request.session['exam_id'] = exam.id
 
@@ -536,18 +535,41 @@ def edit_exam_assignment_view(request, exam_id):
         'ta_display_list': ta_display_list,
     })
 
+
+
+def delete_exam_assignments_view(request, exam_id):
+    exam = get_object_or_404(Exam, id=exam_id)
+
+    
+    duties = ProctoringDuty.objects.filter(exam=exam)
+    for duty in duties:
+        ta = duty.assigned_ta
+        if ta:
+            
+            ta.save()
+    duties.delete()
+
+    
+    exam.assigned_tas.clear()
+
+    
+    return redirect('duties:manage_exam_assignments')
+
+
 def manage_exam_assignments_view(request):
     exams = Exam.objects.select_related('course').prefetch_related('assigned_tas', 'classroom')
 
     exam_data = []
     for exam in exams:
-        assigned_count = ProctoringDuty.objects.filter(exam=exam).count()
+        proctoring_duties = ProctoringDuty.objects.filter(exam=exam).select_related('assigned_ta__user', 'classroom')
+        assigned_count = proctoring_duties.count()
         status = "Assigned" if assigned_count > 0 else "Unassigned"
 
         exam_data.append({
             'exam': exam,
             'assigned_count': assigned_count,
             'status': status,
+            'duties': proctoring_duties  
         })
 
     return render(request, 'duties/manage_exam_assignments.html', {
@@ -1309,3 +1331,46 @@ def delete_exam_assignments_view(request, exam_id):
     exam.assigned_tas.clear()
 
     return redirect('duties:manage_exam_assignments')
+
+def get_exams_by_course(request):
+    course_id = request.GET.get('course_id')
+    exams = Exam.objects.filter(course_id=course_id).values('id', 'date', 'start_time', 'end_time')
+
+    exam_list = [
+        {
+            'id': exam['id'],
+            'label': f"{exam['date']} - {exam['start_time']} to {exam['end_time']}"
+        }
+        for exam in exams
+    ]
+    return JsonResponse({'exams': exam_list})
+
+def get_proctoring_duties(request):
+    exam_id = request.GET.get('exam_id')
+    duties = ProctoringDuty.objects.filter(exam_id=exam_id).select_related('assigned_ta__user', 'classroom')
+
+    duty_list = [
+        {
+            'ta_name': duty.assigned_ta.user.get_full_name(),
+            'classroom': str(duty.classroom),
+            'time': f"{duty.start_time} - {duty.end_time}"
+        }
+        for duty in duties
+    ]
+    return JsonResponse({'duties': duty_list})
+
+def see_proctoring_duties_view(request):
+    courses = Course.objects.all().order_by('department_code', 'course_code')
+    selected_course_id = request.GET.get('course')
+    duties = []
+
+    if selected_course_id:
+        exams = Exam.objects.filter(course_id=selected_course_id)
+        duties = ProctoringDuty.objects.filter(exam__in=exams).select_related(
+            'assigned_ta__user', 'exam', 'classroom'
+        ).order_by('exam__date', 'exam__start_time')
+
+    return render(request, 'duties/see_proctoring_duties.html', {
+        'courses': courses,
+        'selected_course_id': selected_course_id,
+        'duties': duties,})
