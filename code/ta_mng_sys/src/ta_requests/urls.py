@@ -15,9 +15,6 @@ app_name = 'ta_requests'
 
 urlpatterns = [
     path('leave/request/', LeaveRequestCreateView.as_view(), name='leave-request'),
-    path('leave/success/', TemplateView.as_view(
-            template_name='ta_requests/leave_success.html'),
-         name='leave-success'),
     path('leave/approve/<int:pk>/', approve_leave_view, name='leave-approve'),
     path('leave/reject/<int:pk>/', reject_leave_view, name='leave-reject'),
     path('leave/list/', LeaveRequestListView.as_view(), name='leave-list'),

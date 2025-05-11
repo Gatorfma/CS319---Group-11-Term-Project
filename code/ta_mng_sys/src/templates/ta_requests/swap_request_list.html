@@ -1,54 +1,85 @@
-{# code/ta_mng_sys/src/templates/ta_requests/swap_request_list.html #}
 {% extends 'base.html' %}
 {% block content %}
-<div class="container mx-auto p-4">
-  <h2 class="text-2xl font-bold mb-4">My Swap Requests</h2>
+<div class="layout-content-container px-10 py-5">
+  <h2 class="text-2xl font-bold mb-6">My Swap Requests</h2>
 
   {% if requests %}
-    <table class="table-auto w-full mb-4">
-      <thead>
-        <tr>
-          <th class="px-4 py-2">Your Duty</th>
-          <th class="px-4 py-2">With</th>
-          <th class="px-4 py-2">Reason</th>
-          <th class="px-4 py-2">Status</th>
-          <th class="px-4 py-2">Requested At</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for req in requests %}
-        <tr class="border-t">
-          <td class="px-4 py-2">{{ req.duty }}</td>
-          <td class="px-4 py-2">{{ req.to_ta.user.get_full_name }}</td>
-          <td class="px-4 py-2">{{ req.reason|truncatechars:30 }}</td>
-          <td class="px-4 py-2">{{ req.get_status_display }}</td>
-          <td class="px-4 py-2">{{ req.requested_at|date:"Y-m-d H:i" }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+  <div class="card mb-6">
+    <div class="card-body">
+      <table class="table text-sm">
+        <thead>
+          <tr class="text-muted text-xs uppercase">
+            <th>Your Duty</th>
+            <th>Swap With</th>
+            <th>Reason</th>
+            <th>Status</th>
+            <th>Requested At</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for req in requests %}
+          <tr class="border-b hover:bg-gray-50">
+            <!-- Your Duty -->
+            <td class="py-3">
+              {{ req.duty }}
+            </td>
+            <!-- Swap With (With) -->
+            <td class="py-3">
+              {% if req.to_ta %}
+                {{ req.to_ta.user.get_full_name }}
+              {% else %}
+                <span class="text-muted">—</span>
+              {% endif %}
+            </td>
+            <!-- Reason -->
+            <td class="py-3 text-justify">
+              {{ req.reason|truncatechars:50 }}
+            </td>
+            <!-- Status Badge -->
+            <td class="py-3">
+              <span class="inline-block text-xs px-3 py-1 rounded-full
+                {% if req.status == 'P' %}bg-gray-200 text-gray-800
+                {% elif req.status == 'A' %}bg-green-100 text-green-800
+                {% else %}bg-red-100 text-red-800{% endif %}">
+                {{ req.get_status_display }}
+              </span>
+            </td>
+            <!-- Requested At -->
+            <td class="py-3">
+              {{ req.requested_at|date:"M j, Y H:i" }}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
 
-    {% if is_paginated %}
-      <nav class="flex justify-center">
-        <ul class="inline-flex">
+      {% if is_paginated %}
+      <nav class="flex justify-center mt-4">
+        <ul class="flex gap-3">
           {% if page_obj.has_previous %}
-            <li><a href="?page={{ page_obj.previous_page_number }}" class="px-3">« Prev</a></li>
+          <li>
+            <a href="?page={{ page_obj.previous_page_number }}" class="text-primary text-sm">« Prev</a>
+          </li>
           {% endif %}
-          <li class="px-3">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</li>
+          <li class="text-muted text-sm">
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+          </li>
           {% if page_obj.has_next %}
-            <li><a href="?page={{ page_obj.next_page_number }}" class="px-3">Next »</a></li>
+          <li>
+            <a href="?page={{ page_obj.next_page_number }}" class="text-primary text-sm">Next »</a>
+          </li>
           {% endif %}
         </ul>
       </nav>
-    {% endif %}
-
+      {% endif %}
+    </div>
+  </div>
   {% else %}
-    <p>You haven’t submitted any swap requests yet.</p>
+    <p class="text-muted text-sm">You haven’t submitted any swap requests yet.</p>
   {% endif %}
 
-  <a href="{% url 'ta_requests:swap-request' %}"
-     class="mt-4 inline-block btn-indigo px-4 py-2 rounded">
-    New Swap Request
-  </a>
+  <div class="text-right">
+    <a href="{% url 'ta_requests:swap-request' %}" class="btn btn-accent">New Swap Request</a>
+  </div>
 </div>
 {% endblock %}
