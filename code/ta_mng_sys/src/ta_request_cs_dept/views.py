@@ -44,8 +44,8 @@ class CoordinatorRequiredMixin(UserPassesTestMixin):
 class TARequestListView(LoginRequiredMixin, InstructorRequiredMixin, ListView):
     """List all TA requests created by the instructor"""
     model = TARequest
-    template_name = 'ta_requests/request_list.html'
-    context_object_name = 'ta_requests'
+    template_name = 'ta_request_cs_dept/request_list.html'
+    context_object_name = 'ta_request_cs_dept'
     
     def get_queryset(self):
         return TARequest.objects.filter(instructor=self.request.user)
@@ -79,8 +79,8 @@ class TARequestCreateView(LoginRequiredMixin, InstructorRequiredMixin, CreateVie
     """Create a new TA request"""
     model = TARequest
     form_class = TARequestForm
-    template_name = 'ta_requests/request_form.html'
-    success_url = reverse_lazy('ta_requests:list')
+    template_name = 'ta_request_cs_dept/request_form.html'
+    success_url = reverse_lazy('ta_request_cs_dept:list')
     
     def dispatch(self, request, *args, **kwargs):
         # Check if request period is active
@@ -88,10 +88,10 @@ class TARequestCreateView(LoginRequiredMixin, InstructorRequiredMixin, CreateVie
             active_semester = Semester.objects.get(is_active=True)
             if not active_semester.is_request_period_active():
                 messages.error(request, f"TA request submission is closed. The request period ended on {active_semester.request_end_date}.")
-                return redirect('ta_requests:list')
+                return redirect('ta_request_cs_dept:list')
         except Semester.DoesNotExist:
             messages.error(request, "No active semester found. Please contact the administrator.")
-            return redirect('ta_requests:list')
+            return redirect('ta_request_cs_dept:list')
             
         return super().dispatch(request, *args, **kwargs)
     
@@ -176,8 +176,8 @@ class TARequestUpdateView(LoginRequiredMixin, InstructorRequiredMixin, UpdateVie
     """Update an existing TA request"""
     model = TARequest
     form_class = TARequestForm
-    template_name = 'ta_requests/request_form.html'
-    success_url = reverse_lazy('ta_requests:list')
+    template_name = 'ta_request_cs_dept/request_form.html'
+    success_url = reverse_lazy('ta_request_cs_dept:list')
     
     def dispatch(self, request, *args, **kwargs):
         # Check if request period is active for the semester this request belongs to
@@ -185,7 +185,7 @@ class TARequestUpdateView(LoginRequiredMixin, InstructorRequiredMixin, UpdateVie
         
         if not ta_request.semester.is_request_period_active():
             messages.error(request, f"TA request editing is closed. The request period ended on {ta_request.semester.request_end_date}.")
-            return redirect('ta_requests:list')
+            return redirect('ta_request_cs_dept:list')
             
         return super().dispatch(request, *args, **kwargs)
     
@@ -270,7 +270,7 @@ class TARequestUpdateView(LoginRequiredMixin, InstructorRequiredMixin, UpdateVie
 class SemesterListView(LoginRequiredMixin, CoordinatorRequiredMixin, ListView):
     """List all semesters for TA coordinators"""
     model = Semester
-    template_name = 'ta_requests/semester_list.html'
+    template_name = 'ta_request_cs_dept/semester_list.html'
     context_object_name = 'semesters'
     ordering = ['-is_active', '-start_date']
 
@@ -279,8 +279,8 @@ class SemesterCreateView(LoginRequiredMixin, CoordinatorRequiredMixin, CreateVie
     """Create a new semester"""
     model = Semester
     form_class = SemesterForm
-    template_name = 'ta_requests/semester_form.html'
-    success_url = reverse_lazy('ta_requests:semester_list')
+    template_name = 'ta_request_cs_dept/semester_form.html'
+    success_url = reverse_lazy('ta_request_cs_dept:semester_list')
     
     def form_valid(self, form):
         messages.success(self.request, 'Semester created successfully!')
@@ -291,8 +291,8 @@ class SemesterUpdateView(LoginRequiredMixin, CoordinatorRequiredMixin, UpdateVie
     """Update semester details"""
     model = Semester
     form_class = SemesterForm
-    template_name = 'ta_requests/semester_form.html'
-    success_url = reverse_lazy('ta_requests:semester_list')
+    template_name = 'ta_request_cs_dept/semester_form.html'
+    success_url = reverse_lazy('ta_request_cs_dept:semester_list')
     
     def form_valid(self, form):
         messages.success(self.request, 'Semester updated successfully!')
@@ -302,8 +302,8 @@ class SemesterUpdateView(LoginRequiredMixin, CoordinatorRequiredMixin, UpdateVie
 class CoordinatorDashboardView(LoginRequiredMixin, CoordinatorRequiredMixin, ListView):
     """Dashboard for TA coordinators to manage all requests"""
     model = TARequest
-    template_name = 'ta_requests/coordinator_dashboard.html'
-    context_object_name = 'ta_requests'
+    template_name = 'ta_request_cs_dept/coordinator_dashboard.html'
+    context_object_name = 'ta_request_cs_dept'
     
     def get_queryset(self):
         # Filter by semester if provided
@@ -344,7 +344,7 @@ class CoordinatorDashboardView(LoginRequiredMixin, CoordinatorRequiredMixin, Lis
 class TARequestDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
     """Detailed view of a TA request for coordinators and request owners"""
     model = TARequest
-    template_name = 'ta_requests/request_detail.html'
+    template_name = 'ta_request_cs_dept/request_detail.html'
     context_object_name = 'ta_request'
     
     def test_func(self):
@@ -377,11 +377,11 @@ def export_requests_csv(request):
     
     if not semester:
         messages.error(request, "No active semester found.")
-        return redirect('ta_requests:coordinator_dashboard')
+        return redirect('ta_request_cs_dept:coordinator_dashboard')
     
     # Create CSV response
     response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = f'attachment; filename="ta_requests_{semester.name.replace(" ", "_")}.csv"'
+    response['Content-Disposition'] = f'attachment; filename="ta_request_cs_dept_{semester.name.replace(" ", "_")}.csv"'
     
     writer = csv.writer(response)
     writer.writerow([
@@ -391,14 +391,14 @@ def export_requests_csv(request):
     ])
     
     # Query all requests for this semester with prefetched data
-    ta_requests = TARequest.objects.filter(semester=semester).select_related(
+    ta_request_cs_dept = TARequest.objects.filter(semester=semester).select_related(
         'instructor', 'course'
     ).prefetch_related(
         'must_have_tas__user', 'preferred_tas__user', 
         'preferred_graders__user', 'tas_to_avoid__user', 'graders_to_avoid__user'
     )
     
-    for req in ta_requests:
+    for req in ta_request_cs_dept:
         # Get lists of TAs in preference order
         must_have_tas = _get_tas_in_order(req, MustHaveTAPreference)
         preferred_tas = _get_tas_in_order(req, TAPreference)
@@ -447,7 +447,7 @@ def export_requests_excel(request):
     
     if not semester:
         messages.error(request, "No active semester found.")
-        return redirect('ta_requests:coordinator_dashboard')
+        return redirect('ta_request_cs_dept:coordinator_dashboard')
     
     # Create workbook
     wb = Workbook()
@@ -464,7 +464,7 @@ def export_requests_excel(request):
         ws.cell(row=1, column=col_num, value=header)
     
     # Query all requests
-    ta_requests = TARequest.objects.filter(semester=semester).select_related(
+    ta_request_cs_dept = TARequest.objects.filter(semester=semester).select_related(
         'instructor', 'course'
     ).prefetch_related(
         'must_have_tas__user', 'preferred_tas__user', 
@@ -472,7 +472,7 @@ def export_requests_excel(request):
     )
     
     # Write data
-    for row_num, req in enumerate(ta_requests, 2):
+    for row_num, req in enumerate(ta_request_cs_dept, 2):
         # Get lists of TAs in preference order
         must_have_tas = _get_tas_in_order(req, MustHaveTAPreference)
         preferred_tas = _get_tas_in_order(req, TAPreference)
@@ -508,7 +508,7 @@ def export_requests_excel(request):
         buffer.getvalue(),
         content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )
-    response['Content-Disposition'] = f'attachment; filename="ta_requests_{semester.name.replace(" ", "_")}.xlsx"'
+    response['Content-Disposition'] = f'attachment; filename="ta_request_cs_dept_{semester.name.replace(" ", "_")}.xlsx"'
     
     return response
 

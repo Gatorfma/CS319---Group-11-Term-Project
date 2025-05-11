@@ -43,7 +43,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'duties',
     'notifications',
-    'ta_requests',
+    'ta_request_cs_dept',
 ]
 
 

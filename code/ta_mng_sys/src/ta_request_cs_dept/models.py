@@ -68,18 +68,18 @@ class TARequest(models.Model):
         settings.AUTH_USER_MODEL, 
         on_delete=models.CASCADE,
         limit_choices_to={'role': CustomUser.Roles.INSTRUCTOR},
-        related_name='ta_requests'
+        related_name='ta_request_cs_dept'
     )
     semester = models.ForeignKey(
         Semester,
         on_delete=models.CASCADE,
-        related_name='ta_requests',
+        related_name='ta_request_cs_dept',
         help_text="Semester for which this request applies"
     )
     course = models.ForeignKey(
         Course, 
         on_delete=models.CASCADE,
-        related_name='ta_requests',
+        related_name='ta_request_cs_dept',
         help_text="Course that needs TAs"
     )
     

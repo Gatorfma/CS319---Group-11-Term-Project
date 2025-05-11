@@ -1,6 +1,6 @@
 from django.apps import AppConfig
 
 
-class TaRequestsConfig(AppConfig):
+class TaRequestCsDeptConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'ta_requests'
+    name = 'ta_request_cs_dept'

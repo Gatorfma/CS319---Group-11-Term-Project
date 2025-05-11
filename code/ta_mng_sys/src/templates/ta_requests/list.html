@@ -8,10 +8,10 @@
   
   <div class="flex justify-between items-center py-3">
     <h2>Your Course TA Requests</h2>
-    <a href="{% url 'ta_requests:create' %}" class="btn btn-accent">Create New Request</a>
+    <a href="{% url 'ta_request_cs_dept:create' %}" class="btn btn-accent">Create New Request</a>
   </div>
 
-  {% if ta_requests %}
+  {% if ta_request_cs_dept %}
     <div class="card">
       <table class="table">
         <thead>
@@ -24,14 +24,14 @@
           </tr>
         </thead>
         <tbody>
-          {% for request in ta_requests %}
+          {% for request in ta_request_cs_dept %}
             <tr>
               <td>{{ request.course.course.code }} - {{ request.course.course.title }}</td>
               <td>{{ request.min_ta_loads }} - {{ request.max_ta_loads }}</td>
               <td>{{ request.graders_requested }}</td>
               <td>{{ request.updated_at|date:"M d, Y" }}</td>
               <td>
-                <a href="{% url 'ta_requests:update' request.id %}" class="btn btn-alt">Edit</a>
+                <a href="{% url 'ta_request_cs_dept:update' request.id %}" class="btn btn-alt">Edit</a>
               </td>
             </tr>
           {% endfor %}
@@ -42,7 +42,7 @@
     <div class="card">
       <div class="card-body text-center">
         <p>You haven't created any TA requests yet.</p>
-        <a href="{% url 'ta_requests:create' %}" class="btn btn-accent">Create Your First Request</a>
+        <a href="{% url 'ta_request_cs_dept:create' %}" class="btn btn-accent">Create Your First Request</a>
       </div>
     </div>
   {% endif %}
