@@ -31,12 +31,16 @@
                   <input type="hidden" name="log_id" value="{{ log.id }}">
                   <button type="submit"
                           name="action" value="approve"
-                          class="btn btn-accent text-xs">
+                          class="btn btn-accent text-xs" class="btn btn-accent text-xs"
++         onclick="return confirm('Are you sure you want to approve this duty log?');">
+>
                     Approve
                   </button>
                   <button type="submit"
                           name="action" value="reject"
-                          class="btn btn-alt text-xs">
+                          class="btn btn-alt text-xs" class="btn btn-accent text-xs"
++         onclick="return confirm('Are you sure you want to approve this duty log?');">
+>
                     Reject
                   </button>
                 </form>

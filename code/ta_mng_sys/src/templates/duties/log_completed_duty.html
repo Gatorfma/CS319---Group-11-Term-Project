@@ -62,7 +62,9 @@
             </div>
 
             <div class="flex justify-end">
-              <button type="submit" class="btn btn-accent">
+              <button type="submit" class="btn btn-accent" class="btn btn-accent text-xs"
++         onclick="return confirm('Are you sure you want to log this duty?');">
+>
                 Submit Duty Log
               </button>
             </div>
@@ -119,4 +121,34 @@
 
   </main>
 </div>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const dutyTypeSelect = document.getElementById('id_duty_type');
+  const offeringSelect = document.getElementById('id_offering');
+
+  dutyTypeSelect.addEventListener('change', function () {
+    const selectedDutyType = this.value;
+
+    // AJAX isteği gönder
+    fetch(`/duties/ajax/get_offerings/?duty_type=${selectedDutyType}`)
+      .then(response => response.json())
+      .then(data => {
+        // Önce mevcut seçenekleri temizle
+        offeringSelect.innerHTML = '';
+
+        // Yeni seçenekleri doldur
+        data.offerings.forEach(offering => {
+          const option = document.createElement('option');
+          option.value = offering.id;
+          option.textContent = offering.name;
+          offeringSelect.appendChild(option);
+        });
+      })
+      .catch(error => {
+        console.error('Error fetching offerings:', error);
+      });
+  });
+});
+</script>
+
 {% endblock %}

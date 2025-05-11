@@ -45,4 +45,15 @@
     </div>
   </div>
 </div>
+<script>
+  document.querySelectorAll('button[name="action"]').forEach(btn => {
+    btn.addEventListener('click', e => {
+      const msg = btn.value === 'approve'
+        ? 'Are you sure you want to approve this swap request?'
+        : 'Are you sure you want to reject this swap request?';
+      if (!confirm(msg)) e.preventDefault();
+    });
+  });
+</script>
+
 {% endblock %}

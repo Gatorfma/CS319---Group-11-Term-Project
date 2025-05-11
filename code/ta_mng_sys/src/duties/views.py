@@ -14,6 +14,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.models import ContentType
 from django.utils.timezone      import now
 from accounts.models             import CustomUser
+from django.http import JsonResponse
 
 from .forms    import DutyLogForm
 from .models   import DutyLog, LabDuty, GradingDuty, RecitationDuty, OfficeHourDuty, ProctoringDuty
@@ -580,21 +581,19 @@ DUTY_MODEL_MAP = {
 @login_required
 def log_completed_duty(request):
     if not hasattr(request.user, 'ta_profile'):
-        return redirect('home')  # güvenlik: TA olmayanlar girmesin
+        return redirect('home')  
 
     status = request.GET.get('status')
     logs = None
     submitted = False
     form = None
 
-    # Eğer ?status parametresi varsa sadece logları göster
     if status in ['all', 'A', 'P', 'R']:
         logs = DutyLog.objects.filter(ta_profile=request.user.ta_profile)
         if status != 'all':
             logs = logs.filter(status=status)
         logs = logs.order_by('-date_logged')
     else:
-        # Form modundayız
         if request.method == 'POST':
             form = DutyLogForm(request.POST, user=request.user)
             if form.is_valid():
@@ -675,3 +674,28 @@ def manage_duty_logs(request):
     return render(request, 'duties/duty_log_manage.html', {
         'logs': pending_logs,
     })
+
+@login_required
+def get_offerings_for_duty_type(request):
+    duty_type = request.GET.get('duty_type')
+    ta_profile = request.user.ta_profile
+
+    duty_model_map = {
+        'lab':        LabDuty,
+        'grading':    GradingDuty,
+        'recitation': RecitationDuty,
+        'officehour': OfficeHourDuty,
+        'proctoring': ProctoringDuty,
+    }
+
+    model_cls = duty_model_map.get(duty_type)
+    if model_cls is None:
+        return JsonResponse({'offerings': []})
+
+    duties = model_cls.objects.filter(assigned_ta=ta_profile).select_related('offering')
+    offerings = [
+        {'id': duty.offering.id, 'name': str(duty.offering)}
+        for duty in duties
+    ]
+    duties = model_cls.objects.filter(assigned_ta=ta_profile)
+    return JsonResponse({'offerings': offerings})

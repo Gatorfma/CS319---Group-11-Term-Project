@@ -38,7 +38,8 @@ class DutyLogForm(forms.Form):
         if not user or not hasattr(user, 'ta_profile'):
             return
         ta = user.ta_profile
-
+        self.fields['offering'].queryset = CourseOffering.objects.none()
+        self.fields['duty_type'].queryset = CourseOffering.objects.none()
         selected = self.data.get('duty_type')
         if selected in DUTY_MODEL_MAP:
             model_cls     = DUTY_MODEL_MAP[selected]
