@@ -5,12 +5,15 @@
 		<ul class="navbar-menu">
 			<li><a href="{% url 'home' %}" class="btn btn-alt text-muted">Home</a></li>
 
+
 			{% if user.is_authenticated %}
-				{% if user.role == user.Roles.TA %}
-				<li><a href="#" class="btn btn-alt">Log Duty</a></li>
-				<li><a href="#" class="btn btn-alt">My Logs</a></li>
-				<li><a href="#" class="btn btn-alt">Request Leave</a></li>
-				{% endif %}
+
+			{% if user.role == user.Roles.TA %}
+			<li><a href="#" class="btn btn-alt">Log Duty</a></li>
+			<li><a href="#" class="btn btn-alt">My Logs</a></li>
+			<li><a href="#" class="btn btn-alt">Request Leave</a></li>
+			{% endif %}
+
 
 				{% if user.role == user.Roles.INSTRUCTOR %}
 				<li><a href="#" class="btn btn-alt">Approve Logs</a></li>

@@ -13,4 +13,6 @@ urlpatterns = [
         LogoutView.as_view(next_page="home"),
         name="logout",
         ),  
+     path("duties/", include("duties.urls")),
+     path("courses/", include("courses.urls")),
 ]

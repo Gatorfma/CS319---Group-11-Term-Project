@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Automatic Proctor Assignment - TA Management System{% endblock %}
+
+{% block content %}
+  <div class="layout-content-container px-10 py-5">
+    <div class="card">
+      <div class="card-header">
+        Automatic Proctor Assignment
+      </div>
+      <div class="card-body">
+        {% if messages %}
+          {% for message in messages %}
+            <div class="text-muted">{{ message }}</div>
+          {% endfor %}
+        {% endif %}
+
+        <form method="post" class="flex flex-col gap-4">
+          {% csrf_token %}
+          
+          <div class="form-group">
+            {{ form.exam.label_tag }}
+            {{ form.exam }}
+          </div>
+          
+          <div class="form-group">
+            {{ form.override_msphd.label_tag }}
+            {{ form.override_msphd }}
+          </div>
+          
+          <div class="form-group">
+            {{ form.override_proctor_type_0.label_tag }}
+            {{ form.override_proctor_type_0 }}
+          </div>
+          
+          <div class="form-group">
+            {{ form.override_proctor_type_1.label_tag }}
+            {{ form.override_proctor_type_1 }}
+          </div>
+          
+          <div class="form-group">
+            {{ form.override_same_day.label_tag }}
+            {{ form.override_same_day }}
+          </div>
+          
+          <div class="flex justify-center">
+            <button type="submit" class="btn btn-accent">
+              Assign Proctors
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="text-center">
+      <a href="{% url 'home' %}" class="btn btn-alt">&larr; Back to Home</a>
+    </div>
+  </div>
+{% endblock %}
