@@ -36,20 +36,12 @@
   <div class="manual-proctor-container">
     <h2>Manual Proctor Assignment for {{ exam.course.department_code }}{{ exam.course.course_code }} – {{ exam.date }}</h2>
     
-    {% if form.non_field_errors %}
-      <div class="alert alert-danger mb-3">
-        {% for error in form.non_field_errors %}
-          <p>{{ error }}</p>
-        {% endfor %}
-      </div>
-    {% endif %}
-
     {% if messages %}
-      <div class="alert alert-danger mb-3">
-        {% for message in messages %}
+       <div class="alert alert-danger mb-3">
+         {% for message in messages %}
           <p>{{ message }}</p>
-        {% endfor %}
-      </div>
+         {% endfor %}
+       </div>
     {% endif %}
 
     <div class="manual-card">
@@ -69,7 +61,6 @@
                   name="tas"
                   id="ta_{{ ta_id }}"
                   value="{{ ta_id }}"
-                  {% if ta_id|stringformat:"s" in form.data.getlist("tas") %}checked{% endif %}
                 >
                 <label
                   class="form-check-label"

@@ -76,6 +76,26 @@ def assign_classrooms_view(request, exam_id):
     if request.method == 'POST':
         ProctoringDuty.objects.filter(exam=exam).delete()
         exam.assigned_tas.clear()
+
+        used_classroom_ids = set()
+        duplicate = False
+
+        for ta in selected_tas:
+            classroom_id = request.POST.get(f'classroom_{ta.id}')
+            if not classroom_id:
+                continue
+            if classroom_id in used_classroom_ids:
+                duplicate = True
+                break
+            used_classroom_ids.add(classroom_id)
+
+        if duplicate:
+            messages.error(request, "Each TA must be assigned to a different classroom.")
+            return render(request, 'duties/assign_classrooms.html', {
+                'exam': exam,
+                'selected_tas': selected_tas,
+                'classrooms': classrooms,
+            })
         for ta in selected_tas:
             classroom_id = request.POST.get(f'classroom_{ta.id}')
             if not classroom_id:
@@ -100,8 +120,8 @@ def assign_classrooms_view(request, exam_id):
 
             ta.save()
 
-        messages.success(request, "Classrooms and duties assigned successfully.")
-        return redirect('home')
+        return redirect('duties:manage_exam_assignments')
+        
 
     return render(request, 'duties/assign_classrooms.html', {
         'exam': exam,
@@ -151,7 +171,7 @@ def perform_auto_assignment(exam, num_proctors, override_msphd=False, override_p
         conflict1 = False
         for e in enrolled_exams:
             if is_time_conflict(start, end, e.start_time, e.end_time):
-                rejected_tas.append((ta, 'Conflict with enrolled course exam'))
+                rejected_tas.append((ta, 'Conflict with enrolled course exam in same hour'))
                 conflict1 = True
                 break
 
@@ -167,7 +187,7 @@ def perform_auto_assignment(exam, num_proctors, override_msphd=False, override_p
         for duty in proctorings:
             other_exam = duty.exam
             if is_time_conflict(start, end, other_exam.start_time, other_exam.end_time):
-                rejected_tas.append((ta, 'Already assigned to another proctoring'))
+                rejected_tas.append((ta, 'Already assigned to another proctoring in same hour'))
                 conflict2 = True
                 break
 
@@ -254,6 +274,8 @@ def manual_assign_proctors_view(request, exam_id):
     exam = get_object_or_404(Exam, id=exam_id)
     exam_date = exam.date
     exam_course = exam.course
+    start = exam.start_time
+    end = exam.end_time
 
     all_tas = TAProfile.objects.filter(is_active=True).select_related('user').prefetch_related(
         'enrolled_course_offerings', 'assigned_course_offerings'
@@ -267,15 +289,63 @@ def manual_assign_proctors_view(request, exam_id):
 
         if ta.leave_requests.filter(start_date__lte=exam_date, end_date__gte=exam_date, status='A').exists():
             restricted_reason = 'On leave'
+
         elif ta.enrolled_course_offerings.filter(course=exam_course).exists():
             restricted_reason = 'Enrolled in course'
+
         elif exam_course.course_code >= 500 and ta.ta_type != TAProfile.TAType.PHD:
             restricted_reason = 'Not eligible for MS/PHD course'
+
         elif ta.proctor_type == TAProfile.ProctorType.NO_PROCTORING:
             restricted_reason = 'Not allowed to proctor (type 0)'
+
         elif ta.proctor_type == TAProfile.ProctorType.ASSIGNED_COURSES_ONLY and \
                 not ta.assigned_course_offerings.filter(course=exam_course).exists():
             restricted_reason = 'Only allowed to proctor assigned courses (type 1)'
+
+        elif Exam.objects.filter(
+            course__in=ta.enrolled_course_offerings.values_list('course', flat=True),
+            date=exam_date
+        ).exists():
+            restricted_reason = 'Already has enrolled exam on this day'
+
+        elif ProctoringDuty.objects.filter(
+            assigned_ta=ta,
+            date=exam_date
+        ).exists():
+            restricted_reason = 'Already assigned to proctoring on this day'
+
+        else:
+            enrolled_exams = Exam.objects.filter(
+                course__in=ta.enrolled_course_offerings.values_list('course', flat=True),
+                date=exam_date
+            ).distinct()
+
+            conflict1 = False
+            for e in enrolled_exams:
+                if is_time_conflict(start, end, e.start_time, e.end_time):
+                    restricted_reason = 'Conflict with enrolled exam at the same hour'
+                    conflict1 = True
+                    break
+            if conflict1:
+                restricted_tas.append((ta, restricted_reason))
+                continue
+
+            proctorings = ProctoringDuty.objects.filter(
+                assigned_ta=ta,
+                date=exam_date
+            ).select_related('exam')
+
+            conflict2 = False
+            for duty in proctorings:
+                other_exam = duty.exam
+                if is_time_conflict(start, end, other_exam.start_time, other_exam.end_time):
+                    restricted_reason = 'Conflict with proctoring duty at the same hour'
+                    conflict2 = True
+                    break
+            if conflict2:
+                restricted_tas.append((ta, restricted_reason))
+                continue
 
         if restricted_reason:
             restricted_tas.append((ta, restricted_reason))
@@ -303,48 +373,42 @@ def manual_assign_proctors_view(request, exam_id):
 
     eligible_tas_sorted = sorted(eligible_tas, key=priority_key)
 
-    class ManualProctorAssignmentForm(forms.Form):
-        tas = forms.ModelMultipleChoiceField(
-            queryset=TAProfile.objects.filter(
-                id__in=[ta.id for ta in eligible_tas_sorted] + [ta.id for ta, _ in restricted_tas]
-            ),
-            widget=forms.CheckboxSelectMultiple,
-            required=False  # Bu önemli!
-        )
-
-        def clean_tas(self):
-            tas = self.cleaned_data.get('tas')
-            if not tas or len(tas) != self.num_required:
-                raise forms.ValidationError(
-                    f"You must select exactly {self.num_required} TAs."
-                )
-            return tas
-
-        def __init__(self, *args, **kwargs):
-            self.num_required = kwargs.pop('num_required')
-            super().__init__(*args, **kwargs)
-
     ta_display_list = []
     for ta in eligible_tas_sorted:
         ta_display_list.append((ta.id, f"{ta.user.username} ({ta.total_workload}h workload)"))
     for ta, reason in restricted_tas:
         ta_display_list.append((ta.id, f"\u26a0\ufe0f {ta.user.username} ({reason})"))
 
+    class ManualProctorAssignmentForm(forms.Form):
+        tas = forms.ModelMultipleChoiceField(
+            queryset=TAProfile.objects.filter(
+                id__in=[ta.id for ta in eligible_tas_sorted] + [ta.id for ta, _ in restricted_tas]
+            ),
+            widget=forms.CheckboxSelectMultiple,
+            required=True
+        )
+
     if request.method == 'POST':
-        form = ManualProctorAssignmentForm(request.POST, num_required=exam.num_proctors_required)
+        form = ManualProctorAssignmentForm(request.POST)
+
         if form.is_valid():
-            selected_tas = form.cleaned_data['tas']
+            selected_tas = form.cleaned_data.get('tas', [])
+
+            if not selected_tas or len(selected_tas) != exam.num_proctors_required:
+                messages.error(request, f"You must select exactly {exam.num_proctors_required} TAs.")
+                return render(request, 'duties/manual_assign_proctors.html', {
+                    'form': form,
+                    'exam': exam,
+                    'ta_display_list': ta_display_list
+                })
+
             request.session['exam_id'] = exam.id
             request.session['selected_ta_ids'] = [ta.id for ta in selected_tas]
+
             return redirect('duties:assign_classrooms', exam_id=exam.id)
-        # Hatalıysa aynı sayfaya hata mesajıyla dön
-        return render(request, 'duties/manual_assign_proctors.html', {
-            'form': form,
-            'exam': exam,
-            'ta_display_list': ta_display_list,
-        })
+
     else:
-        form = ManualProctorAssignmentForm(num_required=exam.num_proctors_required)
+        form = ManualProctorAssignmentForm()
 
     return render(request, 'duties/manual_assign_proctors.html', {
         'form': form,
@@ -364,23 +428,6 @@ def select_exam_for_manual_assignment(request):
     })
 
 
-def manage_exam_assignments_view(request):
-    exams = Exam.objects.select_related('course').prefetch_related('assigned_tas', 'classroom')
-
-    exam_data = []
-    for exam in exams:
-        assigned_count = ProctoringDuty.objects.filter(exam=exam).count()
-        status = "Assigned" if assigned_count > 0 else "Unassigned"
-
-        exam_data.append({
-            'exam': exam,
-            'assigned_count': assigned_count,
-            'status': status,
-        })
-
-    return render(request, 'duties/manage_exam_assignments.html', {
-        'exam_data': exam_data,
-    })
 
 def edit_exam_assignment_view(request, exam_id):
     exam = get_object_or_404(Exam, id=exam_id)
@@ -400,12 +447,16 @@ def edit_exam_assignment_view(request, exam_id):
 
         if ta.leave_requests.filter(start_date__lte=exam_date, end_date__gte=exam_date, status='A').exists():
             restricted_reason = 'On leave'
+
         elif ta.enrolled_course_offerings.filter(course=exam_course).exists():
             restricted_reason = 'Enrolled in course'
+
         elif exam_course.course_code >= 500 and ta.ta_type != TAProfile.TAType.PHD:
             restricted_reason = 'Not eligible for MS/PHD course'
+
         elif ta.proctor_type == TAProfile.ProctorType.NO_PROCTORING:
             restricted_reason = 'Not allowed to proctor (type 0)'
+
         elif ta.proctor_type == TAProfile.ProctorType.ASSIGNED_COURSES_ONLY and \
                 not ta.assigned_course_offerings.filter(course=exam_course).exists():
             restricted_reason = 'Only allowed to proctor assigned courses (type 1)'
@@ -435,7 +486,7 @@ def edit_exam_assignment_view(request, exam_id):
         return (primary, secondary, tertiary)
 
     eligible_tas_sorted = sorted(eligible_tas, key=priority_key)
-
+    
     ta_display_list = []
     for ta in eligible_tas_sorted:
         ta_display_list.append((ta.id, f"{ta.user.username} ({ta.total_workload}h workload)"))
@@ -448,38 +499,31 @@ def edit_exam_assignment_view(request, exam_id):
                 id__in=[ta.id for ta in eligible_tas_sorted] + [ta.id for ta, _ in restricted_tas]
             ),
             widget=forms.CheckboxSelectMultiple,
-            required=False,
+            required=True,
             initial=[ta.id for ta in previously_assigned]
         )
 
-        def __init__(self, *args, **kwargs):
-            self.num_required = kwargs.pop('num_required')
-            super().__init__(*args, **kwargs)
-
-        def clean_tas(self):
-            tas = self.cleaned_data.get('tas')
-            if not tas or len(tas) != self.num_required:
-                raise forms.ValidationError(
-                    f"You must select exactly {self.num_required} TAs."
-                )
-            return tas
-
     if request.method == 'POST':
-        form = ManualProctorEditForm(request.POST, num_required=exam.num_proctors_required)
+        form = ManualProctorEditForm(request.POST)
         if form.is_valid():
             selected_tas = form.cleaned_data['tas']
+            
+            if not selected_tas or len(selected_tas) != exam.num_proctors_required:
+                messages.error(request, f"You must select exactly {exam.num_proctors_required} TAs.")
+                return render(request, 'duties/edit_exam_assignment.html', {
+                    'form': form,
+                    'exam': exam,
+                    'ta_display_list': ta_display_list
+                })
+            
+            # Store selected TAs and previously assigned classrooms in session
             request.session['selected_ta_ids'] = [ta.id for ta in selected_tas]
             request.session['exam_id'] = exam.id
 
-            previous_map = {
-                str(duty.assigned_ta.id): duty.classroom.id
-                for duty in exam.proctoring_duties.all()
-            }
-            request.session['previous_classroom_map'] = previous_map
-
             return redirect('duties:assign_classrooms', exam_id=exam.id)
     else:
-        form = ManualProctorEditForm(num_required=exam.num_proctors_required)
+        form = ManualProctorEditForm()
+
 
     return render(request, 'duties/edit_exam_assignment.html', {
         'form': form,
@@ -522,7 +566,7 @@ def delete_exam_assignments_view(request, exam_id):
     # Temizle exam.assigned_tas
     exam.assigned_tas.clear()
 
-    messages.success(request, "All assignments for this exam have been deleted.")
+    
     return redirect('duties:manage_exam_assignments')
 
 DUTY_MODEL_MAP = {
